@@ -1,0 +1,12 @@
+OrdererOrgs:
+  - Name: Orderer
+    Domain: example.com
+    Specs:
+      - Hostname: orderer
+        CommonName: orderer.example.com # overrides Hostname-based FQDN set above
+        SANS:
+          - "orderer.example.com"
+          - "orderer"
+          - "10.9.25.33"
+          - "10.208.211.40"
+      
