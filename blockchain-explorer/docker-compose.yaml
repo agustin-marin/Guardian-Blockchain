@@ -1,15 +1,9 @@
-
 # SPDX-License-Identifier: Apache-2.0
 version: '2.1'
 
 volumes:
   pgdata:
   walletstore:
-
-networks:
-  mynetwork.com:
-    external:
-      name: net_test
 
 services:
 
@@ -28,8 +22,6 @@ services:
       retries: 5
     volumes:
       - pgdata:/var/lib/postgresql/data
-    networks:
-      - mynetwork.com
 
   explorer.mynetwork.com:
     image: hyperledger/explorer:latest
@@ -42,18 +34,17 @@ services:
       - DATABASE_PASSWD=password
       - LOG_LEVEL_APP=debug
       - LOG_LEVEL_DB=debug
-      - LOG_LEVEL_CONSOLE=info
+      - LOG_LEVEL_CONSOLE=debug
       - LOG_CONSOLE_STDOUT=true
       - DISCOVERY_AS_LOCALHOST=false
     volumes:
-      - ./examples/net1/config.json:/opt/explorer/app/platform/fabric/config.json
-      - ./examples/net1/connection-profile:/opt/explorer/app/platform/fabric/connection-profile
-      - /fabric-path/fabric-samples/test-network/organizations:/tmp/crypto
+      - ./config.json:/opt/explorer/app/platform/fabric/config.json
+      - ./connection-profile:/opt/explorer/app/platform/fabric/connection-profile
+      - ./crypto-config:/tmp/crypto
       - walletstore:/opt/explorer/wallet
+      - ./hosts:/etc/hosts
     ports:
       - 8080:8080
     depends_on:
       explorerdb.mynetwork.com:
         condition: service_healthy
-    networks:
-      - mynetwork.com

@@ -1,7 +1,7 @@
 version: '3.4'
 
 volumes:
-  peer0.org1.example.com:
+  peer0.org1.odins.com:
 
 
 services:
@@ -20,8 +20,8 @@ services:
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
-      - CORE_PEER_ID=peer0.org1.example.com
-      - CORE_PEER_ADDRESS=10.9.25.11:7051
+      - CORE_PEER_ID=peer0.org1.odins.com
+      - CORE_PEER_ADDRESS=10.9.26.103:7051
       - CORE_PEER_GOSSIP_USELEADERELECTION=false
       - CORE_PEER_GOSSIP_ORGLEADER=false
       #- CORE_PEER_GOSSIP_BOOTSTRAP=10.9.25.30:7051
@@ -30,7 +30,7 @@ services:
       - CORE_VM_DOCKER_ATTACHSTDOUT=true
       - CORE_CHAINCODE_STARTUPTIMEOUT=1200s
       - CORE_CHAINCODE_EXECUTETIMEOUT=800s
-      - ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+      - ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
       # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
@@ -44,9 +44,9 @@ services:
 
     volumes:
         - /var/run/:/host/var/run/
-        - ~/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/fabric/msp
-        - ~/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls:/etc/hyperledger/fabric/tls
-        - peer0.org1.example.com:/var/hyperledger/production
+        - ~/crypto-config/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp:/etc/hyperledger/fabric/msp
+        - ~/crypto-config/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org1.odins.com:/var/hyperledger/production
         - ~/hosts:/etc/hosts
 
     ports:
@@ -66,6 +66,6 @@ services:
       - COUCHDB_USER=admin
       - COUCHDB_PASSWORD=adminpw
     # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
-    # for example map it to utilize Fauxton User Interface in dev environments.
+    # for odins map it to utilize Fauxton User Interface in dev environments.
     ports:
       - "5984:5984"

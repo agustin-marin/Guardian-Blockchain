@@ -1,4 +1,0 @@
-contracts/PublicInformationContract.java
- contracts.PublicInformationContract
-models/PublicInformation.java
- models.PublicInformation

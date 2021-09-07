@@ -4,16 +4,16 @@ var router = express.Router();
 const { default: fabricNetworkSimple } = require('fabric-network-simple');
 
 var conf = fabricNetworkSimple.config = {
-  channelName: "channel",
-  contractName: "OlympusManager",
+  channelName: "mychannel",
+  contractName: "GuardianSC",
   connectionProfile: {
     name: "umu.fabric",
     version: "1.0.0",
     channels : {
-      channel : {
-        orderers : [ "orderer.example.com" ],
+      mychannel : {
+        orderers : [ "orderer.odins.com" ],
         peers : {
-          "peer0.org1.example.com" : {
+          "peer0.org1.odins.com" : {
             endorsingPeer : true,
             chaincodeQuery : true,
             ledgerQuery : true,
@@ -26,35 +26,32 @@ var conf = fabricNetworkSimple.config = {
     organizations : {
       Org1 : {
         mspid : "Org1MSP",
-        peers : [ "peer0.org1.example.com"],
-        certificateAuthorities : [ "ca.org1.example.com" ]
+        peers : [ "peer0.org1.odins.com"],
+        certificateAuthorities : [ "ca.org1.odins.com" ]
       }
     },
     orderers : {
-      "orderer.example.com" : {
-        url : "grpcs://orderer.example.com:7050",
+      "orderer.odins.com" : {
+        url : "grpcs://10.9.26.101:7050",
         tlsCACerts: {
           path:
-            "/home/ubuntu/SignAPI_chain/test/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem",
+            "/home/debian/ChainREST/test/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem",
         },
       }
     },
     peers : {
-      "peer0.org1.example.com" : {
-        "url" : "grpcs://peer0.org1.example.com:7051",
+      "peer0.org1.odins.com" : {
+        "url" : "grpcs://10.9.26.103:7051",
         tlsCACerts: {
           path:
-            "/home/ubuntu/SignAPI_chain/test/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem",
+            "/home/debian/ChainREST/test/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp/tlscacerts/tlsca.org1.odins.com-cert.pem",
         },
       },
     },
   },
   certificateAuthorities : {
-      "ca.org2.example.com" : {
-        "url" : "https://ca.org2.example.com:8054"
-      },
-      "ca.org1.example.com" : {
-        "url" : "https://ca.org1.example.com:7054",
+      "ca.org1.odins.com" : {
+        "url" : "https://10.9.26.102:7054",
         "httpOptions" : {
           "verify" : false
         },
@@ -66,15 +63,14 @@ var conf = fabricNetworkSimple.config = {
   },
   identity: {
     mspid: 'Org1MSP',
-    certificate: '-----BEGIN CERTIFICATE-----\nMIICODCCAd+gAwIBAgIUKBUPwZRyw2/gB6g5mH2Ycm98FYEwCgYIKoZIzj0EAwIw\nczELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNh\nbiBGcmFuY2lzY28xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMT\nE2NhLm9yZzEuZXhhbXBsZS5jb20wHhcNMjEwNDIwMDk1NjAwWhcNMjIwNDIwMTAw\nMTAwWjAhMQ8wDQYDVQQLEwZjbGllbnQxDjAMBgNVBAMTBWFkbWluMFkwEwYHKoZI\nzj0CAQYIKoZIzj0DAQcDQgAEXzuVlwX44yrMOU6lHucmv8eb2m/l5qo9L53P4oxo\nN4VREUxwt+bkSGa/fdOYWGuAf3180KfyC4yyBlfgD8997qOBojCBnzAOBgNVHQ8B\nAf8EBAMCA6gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwGA1UdEwEB\n/wQCMAAwHQYDVR0OBBYEFDQeuDNyzpIvLH2YOcxywjjYkYKfMCsGA1UdIwQkMCKA\nINnBdJS4vqiePq72BPyRBhfjPugrXxUdw7LGuWc5UTw8MBQGA1UdEQQNMAuCCWxv\nY2FsaG9zdDAKBggqhkjOPQQDAgNHADBEAiBqWYubGtltyKf/ISvtG/bqH8dO61VP\nzEf2d9Mj8yhCHwIgB/O1CXpIj5ZvQlQxsLADp1TypOqavgF9H3v5m1PpptA=\n-----END CERTIFICATE-----\n',
-    privateKey: '-----BEGIN PRIVATE KEY-----\nMIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgjHuhQK+30KcXicM/\nZ59Wyh92nl8+vu1lTs+Nrw9o3oigCgYIKoZIzj0DAQehRANCAARfO5WXBfjjKsw5\nTqUe5ya/x5vab+Xmqj0vnc/ijGg3hVERTHC35uRIZr9905hYa4B/fXzQp/ILjLIG\nV+APz33u\n-----END PRIVATE KEY-----\n',
+    certificate: '-----BEGIN CERTIFICATE-----\nMIICJDCCAcugAwIBAgIRAMLJ5Dq0suLCbnAlFiOlpAcwCgYIKoZIzj0EAwIwbzEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFzAVBgNVBAoTDm9yZzEub2RpbnMuY29tMRowGAYDVQQDExFjYS5v\ncmcxLm9kaW5zLmNvbTAeFw0yMTA5MDYxMDIzMDBaFw0zMTA5MDQxMDIzMDBaMGox\nCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4g\nRnJhbmNpc2NvMQ8wDQYDVQQLEwZjbGllbnQxHTAbBgNVBAMMFFVzZXIxQG9yZzEu\nb2RpbnMuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERy/BIdw/vc8BZZ6d\nUod3QRhJuoiR21lnpbl58bUluqzr9+TPiSIG4hPjoXRB68tZRNb5w9+ismmHWQ9o\nZuwCT6NNMEswDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQw\nIoAgfX1EitPfGt967D5Yk2YfW6mEpKtOOC+iGKq2F1lDmNIwCgYIKoZIzj0EAwID\nRwAwRAIgYaEKPnG9fsLHZj8+vKyHzQZH5tHgyTV2DnIwkC1ZI3kCICU5Xt+OZIKx\nnuuWNoymboSHQvl2gZri06hLuWs6o6Ui\n-----END CERTIFICATE-----\n',
+    privateKey: '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwJbDMaWvCM78o9ZF\nyWXs2/yLx3s6paHP04SpBVRIiO6hRANCAARHL8Eh3D+9zwFlnp1Sh3dBGEm6iJHb\nWWeluXnxtSW6rOv35M+JIgbiE+OhdEHry1lE1vnD36KyaYdZD2hm7AJP\n-----END PRIVATE KEY-----\n',
   },
   settings: {
     enableDiscovery: true,
     asLocalhost: false,
   }
 }
-
 asyncCall();
 var fabconnection;
 
@@ -90,177 +86,35 @@ async function asyncCall() {
 }
 
 router.get('/', function(req, res, next) {
-    res.status(200).send("This is the ledger endpoint POST \n Endpoints: \n getvidp \n getschema \n getservices \n getservice");
+    res.status(200).send("This is the ledger endpoint POST \n Endpoints: \n pushdata \n pulldata");
 });
 
-router.post('/getpartialidp', function(req, res, next) {
-  var idpartial = req.body.idpartial;
-  fabconnection.queryChaincode("getpartialidp", [idpartial]).then(queryChaincodeResponse => {
-    res.status(200).send(queryChaincodeResponse);
+router.post('/pushdata', function(req, res, next) {
+  var key = req.body.key;
+  var data = req.body.data;
+  console.log("key: "+key);
+  console.log("data: "+data);
+  fabconnection.invokeChaincode("pushData", [key,data], {}).then(queryChaincodeResponse => {
+    res.status(200).send(queryChaincodeResponse.invokeResult);
   }).catch ( error => {
     console.log(error);
     res.status(404).send(error);
   });
 });
 
-router.post('/getvidp/', function(req, res, next) {
-  var vidpid = req.body.vidpid;
-  console.log(vidpid);
-  fabconnection.queryChaincode('getvirtualidp',[vidpid]).then(queryChaincodeResponse => {
-    res.status(200).send(JSON.parse(queryChaincodeResponse.queryResult[0]));
+router.post('/pulldata/', function(req, res, next) {
+  var query = req.body.query;
+  console.log(query);
+  //fabconnection.invokeChaincode('addservice', [JSON.stringify(servicedid), domain, JSON.stringify(predicates), status], {})
+  fabconnection.queryChaincode('pullData',[query],{}).then(queryChaincodeResponse => {
+    console.log('result: '+ queryChaincodeResponse.queryResult)
+    res.status(200).send(queryChaincodeResponse.queryResult)//JSON.parse(queryChaincodeResponse.queryResult[0]));
   }).catch ( error => {
     console.log(error);
     res.status(404).send(error);
   });
 });
 
-router.get('/getvidp', function(req, res, next) {
-  var activeFlag = req.query.active;
-  fabconnection.queryChaincode('getvirtualidp',[""]).then(queryChaincodeResponse => {
-    var responseObject = [];
-    for(var i = 0; i < queryChaincodeResponse.queryResult.length; i++) {
-      if(activeFlag && activeFlag != 0) {
-        if(JSON.parse(queryChaincodeResponse.queryResult[i]).status == "ACTIVE") {
-          responseObject.push(JSON.parse(queryChaincodeResponse.queryResult[i]));
-        }
-      } else {
-        responseObject.push(JSON.parse(queryChaincodeResponse.queryResult[i]));
-      }
-    }
-    res.status(200).send(responseObject);
-  }).catch ( error => {
-    console.log(error);
-    res.status(404).send(error);
-  });
-});
-
-router.post('/getschema', function(req, res, next) {
-  let partialidp = req.body.partialidpid;
-  fabconnection.queryChaincode('getschema', [partialidp]).then(queryChaincodeResponse => {
-    var responseObject = queryChaincodeResponse.queryResult;
-    responseObject.schema = JSON.parse(queryChaincodeResponse.queryResult.schema);
-    
-    res.status(200).send(responseObject);
-  }).catch ( error => {
-    console.log(error);
-    res.status(404).send(error);
-  });
-});
-
-router.get('/getservices', function(req, res, next) {
-  var activeFlag = req.query.active;
-  fabconnection.queryChaincode('getservice', [""]).then(queryChaincodeResponse => {
-    var responseObject = [];
-    for(var i = 0; i < queryChaincodeResponse.queryResult.length; i++) {
-      if(activeFlag && activeFlag != 0) {
-        if(JSON.parse(queryChaincodeResponse.queryResult[i]).status == "ACTIVE") {
-          responseObject.push(JSON.parse(queryChaincodeResponse.queryResult[i]));
-        }
-      } else {
-        responseObject.push(JSON.parse(queryChaincodeResponse.queryResult[i]));
-      }
-    }
-    res.status(200).send(responseObject);
-  }).catch ( error => {
-    console.log(error);
-    res.status(404).send(error);
-  });
-});
-
-router.post('/getservice', function(req, res, next) {
-  let serviceid = req.body.serviceid;
-  fabconnection.queryChaincode('getservice', [serviceid]).then(queryChaincodeResponse => {
-    var resObj = JSON.parse(queryChaincodeResponse.queryResult);
-    var preds = JSON.parse(resObj.predicates);
-    resObj.predicates = preds;
-    res.status(200).send(resObj);
-  }).catch ( error => {
-    console.log(error);
-    res.status(404).send(error);
-  });
-});
-
-/**
- * Example:
- * {
-    "did": {
-      "service": {
-        "serviceEndpoint": "testdomain2.com",
-        "type": "web service"
-      },
-      "context": "some context",
-      "id": "testdomain2"
-    },
-    "domain": "testdomain2.com",
-    "status": "ACTIVE",
-    "predicates": [
-        {
-            "attributeName":"url:Organization","operation":"REVEAL","value":null,"extraValue":null
-        },
-        {
-            "attributeName":"url:DateOfBirth","operation":"INRANGE","value":"Tue Jan 05 01: 00: 00 CET 1988","extraValue":"Wed Jan 05 01: 00: 00 CET 2000"
-        },
-        {
-            "attributeName":"url:Role","operation":"REVEAL","value":null,"extraValue":null
-        },
-        {
-            "attributeName":"url:Mail","operation":"REVEAL","value":null,"extraValue":null
-        },
-        {
-            "attributeName":"url:AnnualSalary","operation":"INRANGE","value":20000,"extraValue":40000
-        }
-    ]
-  }
- */
-router.post('/addservice', function(req, res, next) {
-  let servicedid = req.body.did;
-  let domain = req.body.domain;
-  let predicates = req.body.predicates;
-  let status = req.body.status;
-  fabconnection.invokeChaincode('addservice', [JSON.stringify(servicedid), domain, JSON.stringify(predicates), status], {}).then(invokeResult => {
-    res.status(201).send(invokeResult);
-  }).catch ( error => {
-    console.log(error);
-    res.status(404).send(error);
-  });
-});
-
-router.get('/getevents', function(req, res, next) {
-  fabconnection.queryChaincode('getevent', [""]).then(queryChaincodeResponse => {
-    var responseObject = [];
-    for(var i = 0; i < queryChaincodeResponse.queryResult.length; i++) {
-      responseObject.push(JSON.parse(queryChaincodeResponse.queryResult[i]));
-    }
-    res.status(200).send(responseObject);
-  }).catch ( error => {
-    console.log(error);
-    res.status(404).send(error);
-  });
-});
-
-/**
-{
-    "eventname": "new event",
-    "eventtype": "INFORMATION",
-    "eventdata": "whatever"
-}
-{
-    "eventname": "new event",
-    "eventtype": "POLICY",
-    "eventdata": "whatever"
-}
- */
-router.post('/sendevent', function(req, res, next) {
-  let body = req.body.body;
-  let type = req.body.eventtype;
-  let title = req.body.title;
- fabconnection.invokeChaincode('addevent', [title, type, body], {} ).then(invokeResult => {
-    res.status(201).send();
-  }).catch ( error => {
-    console.log(error);
-    res.status(404).send(error);
-  });
-});
 
 
 
