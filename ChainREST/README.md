@@ -2,7 +2,7 @@
 ## RUN
 npm install
 
-DEBUG=signapi:* npm start
+DEBUG=chainapi:* npm start
 
 ## Functionality and connection to the blockchain from REST
 
