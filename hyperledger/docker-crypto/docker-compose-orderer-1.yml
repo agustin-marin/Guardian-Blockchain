@@ -4,10 +4,6 @@ volumes:
   orderer.odins.com:
 
   
-networks:
-  bymn:
-    external:
-      name: fabric
 
 services:
   orderer:
