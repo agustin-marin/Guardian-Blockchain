@@ -1,7 +1,7 @@
 {
    "network-configs":{
       "test-network":{
-         "name":"umu.fabric",
+         "name":"odins.fabric",
          "profile":"./connection-profile/test-network.json"
       }
    },
