@@ -34,7 +34,7 @@ repositories {
 }
 
 application {
-    mainClass = 'contracts.PublicInformationContract'
+    mainClass = 'contracts.GuardianDataSaver'
 }
 
 test {
