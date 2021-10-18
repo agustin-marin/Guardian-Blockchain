@@ -75,7 +75,7 @@ public final class GuardianDataSaver implements ContractInterface {
     @Transaction()
     public void publicarconfig(final Context ctx, final String config) {
         ChaincodeStub stub = ctx.getStub();
-
+        // TODO get anterior config y sustituir timestamp config.json
         stub.putStringState("config.json",config);
     }
 
