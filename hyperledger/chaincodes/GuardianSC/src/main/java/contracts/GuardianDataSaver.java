@@ -73,6 +73,20 @@ public final class GuardianDataSaver implements ContractInterface {
     }
 
     @Transaction()
+    public void publicarconfig(final Context ctx, final String config) {
+        ChaincodeStub stub = ctx.getStub();
+
+        stub.putStringState("config.json",config);
+    }
+
+    @Transaction
+    public String getconfig(final Context ctx, final String key ) {
+        ChaincodeStub stub = ctx.getStub();
+
+        return stub.getStringState(key);
+    }
+
+    @Transaction()
     public boolean verifyThing(Context ctx, final String data, final String query){
         throw new ChaincodeException("Method not developed yet", "Ask Admin to complete the contract.");
     }
