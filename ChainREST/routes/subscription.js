@@ -216,8 +216,12 @@ function bucleHastaHoy(attribute, entityid) {
   // lasttimestamp = today.toISOString(); // "2020-06-13T18:30:00.000Z"
   for (let yeari = year; yeari < max_year; yeari++) { // paramos en el año que viene
     for (let mounthi = 0; mounthi < max_mounth; mounthi++) { // paramos en el 12 (mes 11 es diciembre)
+      console.log("1::::  " + from.toISOString);
       for (let dayi = 0; dayi < max_day; dayi++) {
-        for (let houri = 0; houri < max_hour; houri++) {
+        console.log("2::::  " + from.toISOString);
+        for (let houri = 0; houri < max_hour; houri++) {          
+          console.log("3::::  " + from.toISOString);
+          console.log("FROM::::  " + from.toISOString);
           from = new Date(yeari, mounthi, dayi, houri, 0, 0, 0);
           to = new Date(yeari, mounthi, dayi, houri + 1, 0, 0, 0);
           console.log("FROM::::  " + from.toISOString);
