@@ -78,7 +78,7 @@ var conf = fabricNetworkSimple.config = {
 var brokerURL = "http://guardian.odins.es/backend/";
 var brokerUser = "guardian@odins.es";
 var brokerpass = "Ygovy8NzS8Jedun8T55wBRAjwXL/ZTFkpPHEhQ8xPpA=";
-var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNDU1MDI1OCwiZXhwIjoxNjM0NjM2NjU4fQ.rGExPZocIEL9o_odyGVKFqd_CJbm4OB8mtfiDHlQMxE";
+var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNDYzMjkyOCwiZXhwIjoxNjM0NzE5MzI4fQ.AzorG9Mt8-3-EefLrqXHx-WYGm3CmsJTIOy0WFUyKn4";
 var entidades;
 asyncCall();
 var fabconnection;
@@ -104,7 +104,6 @@ let subscriptions;
 router.get('/suscribir', function (req, res, next) {
   getEntidades();
   //suscribirseATodosLosSensores();
-
 });
 
 router.get('/actualizarconfig', function (req, res, next) {
@@ -177,17 +176,20 @@ router.get('/actualizarconfig', function (req, res, next) {
 router.get('/iniciar', function (req, res, next) {
   // var cron = require('node-cron');
   // comprobar que se ha inicializado // timestamp de los config
-  fabconnection.queryChaincode("getconfig", [JSON.stringify(jsonFile)], {}).then(queryChaincodeResponse => {
+  fabconnection.queryChaincode("getconfig", ["config.json"], {}).then(queryChaincodeResponse => {
     //res.status(200).send(queryChaincodeResponse.invokeResult);
-    jsonobject = JSON.parse(queryChaincodeResponse.invokeResult);
-
-    for (var element in jsonObject.entities) {
+    console.log("RESULT: " + JSON.stringify(queryChaincodeResponse));
+    jsonObject = JSON.parse(JSON.stringify(queryChaincodeResponse));
+    jsonObject = JSON.parse(jsonObject.queryResult);
+    console.log("JSONOBJECT:: " + JSON.stringify(jsonObject));
+    element = jsonObject.entities;
+    for (let j = 0; j < element.length; j++) {
       // tiene lasttimestamp?
-      attributes = element.attributes;
-      for (let i ; i < attributes.length; i++) {
-        if (attributes[i].timestamp === null){ // no está inicializado => inicializar => get todos los historicos historicos
-          bucleHastaHoy(attribute[i], element.id);
-
+      attributes = element[j].attributes;
+      for (let i; i < attributes.length; i++) {
+        if (attributes[i].timestamp === null) { // no está inicializado => inicializar => get todos los historicos historicos hasta hoy 
+          // si está inicializado get todos desde timestamp, no hace falta metodo especifico para cada caso
+          bucleHastaHoy(attribute[i], element.id); // añadir parametro con el date inicial de la búsqueda y con eso es suficiente para no repetir demasiado código
         }
       }
     }
@@ -206,39 +208,60 @@ router.get('/iniciar', function (req, res, next) {
     });
   });
 });
-function bucleHastaHoy(attribute, entityid){
-  const from = new Date();
-      lasttimestamp = today.toISOString(); // "2020-06-13T18:30:00.000Z"
+function bucleHastaHoy(attribute, entityid) {
+  today = new Date();
+  comparer = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), 0, 0, 0);
+  let year = 2021;
+  let max_year = today.getFullYear()+1, max_mounth = 12, max_day = 32, max_hour = 24;
+  // lasttimestamp = today.toISOString(); // "2020-06-13T18:30:00.000Z"
+  for (let yeari = year; yeari < max_year; yeari++) { // paramos en el año que viene
+    for (let mounthi = 0; mounthi < max_mounth; mounthi++) { // paramos en el 12 (mes 11 es diciembre)
+      for (let dayi = 0; dayi < max_day; dayi++) {
+        for (let houri = 0; houri < max_hour; houri++) {
+          from = new Date(yeari, mounthi, dayi, houri, 0, 0, 0);
+          to = new Date(yeari, mounthi, dayi, houri + 1, 0, 0, 0);
+          console.log("FROM::::  " + from.toISOString);
+          if (comparer.getTime() == from.getTime()) { // hemos llegado a hoy. paramos el bucle.
+            return;
+          }
+          timestampfrom = from.toISOString();
+          timestampto = to.toISOString();
+          attributejson = JSON.parse(attribute);
+          path = '/backend/STH/v1/contextEntities/type/Device/id/' + entityid + '/attributes/' + attribute.id + "?hLimit=3600&hOffset=0&dateFrom=" + timestampfrom + "&dateTo=" + timestampto;
+          // construimos el GET HISTORICO http://guardian.odins.es/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
+          var options = {
+            host: "guardian.odins.es",
+            port: 80,
+            path: path,
+            method: 'GET', // POST // CREACION DE TOKEN
+            headers: {
+              "x-access-token": brokerToken
+            }
+          }
+          http.get(options, (resp) => {
+            let d = '';
+            console.log(`statusCode: ${resp.statusCode}`)
+            resp.on('data', (chunk) => {
+              d += chunk;
+            });
 
+            resp.on('end', () => {
+              jsonObject = JSON.parse(d); // jsonobject es un array de entidades
+              console.log(d);
+            });
+            resp.on('error', (err) => {
+              console.log("Errrrrrrrror: " + err);
+            });
 
-  attributejson = JSON.parse(attribute);
-  path = '/backend/STH/v1/contextEntities/type/Device/id/' + entity.id + '/attributes/' + attribute.id + "?hLimit=99999&hOffset=0";
-  // construimos el GET HISTORICO http://guardian.odins.es/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
-  var options = {
-    host: "guardian.odins.es",
-    port: 80,
-    path: path,
-    method: 'GET', // POST // CREACION DE TOKEN
-    headers: {
-      "x-access-token": brokerToken
+          })
+        }
+      }
     }
+
   }
-  http.get(options, (resp) => {
-    let d = '';
-    console.log(`statusCode: ${resp.statusCode}`)
-    resp.on('data', (chunk) => {
-      d += chunk;
-    });
 
-    resp.on('end', () => {
-      jsonObject = JSON.parse(d); // jsonobject es un array de entidades
-      console.log(d);
-    });
-    resp.on('error', (err) => {
-      console.log("Errrrrrrrror: " + err);
-    });
 
-  })
+
 }
 
 function getEntidades() {
