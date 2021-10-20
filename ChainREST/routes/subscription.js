@@ -209,6 +209,7 @@ router.get('/iniciar', function (req, res, next) {
   });
 });
 function bucleHastaHoy(attribute, entityid) {
+  console.log("bucleHastaHoy")
   today = new Date();
   comparer = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), 0, 0, 0);
   let year = 2021;
@@ -232,6 +233,7 @@ function bucleHastaHoy(attribute, entityid) {
           timestampto = to.toISOString();
           attributejson = JSON.parse(attribute);
           path = '/backend/STH/v1/contextEntities/type/Device/id/' + entityid + '/attributes/' + attribute.id + "?hLimit=3600&hOffset=0&dateFrom=" + timestampfrom + "&dateTo=" + timestampto;
+          console.log(path);
           // construimos el GET HISTORICO http://guardian.odins.es/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
           var options = {
             host: "guardian.odins.es",
