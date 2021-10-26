@@ -81,7 +81,7 @@ var conf = fabricNetworkSimple.config = {
 var brokerURL = "http://guardian.odins.es/backend/";
 var brokerUser = "guardian@odins.es";
 var brokerpass = "Ygovy8NzS8Jedun8T55wBRAjwXL/ZTFkpPHEhQ8xPpA=";
-var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNTE1MjIwNSwiZXhwIjoxNjM1MjM4NjA1fQ.HrpbUB83x_2pYYuzLMSn8Q2N-RQ3ernu_VU0kK9cW1M";
+var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNTIzODc3NywiZXhwIjoxNjM1MzI1MTc3fQ.-NNpOVGbJvi1qRBbFPhps1XhkL7OkgpBgo-qG0zzWEk";
 var entidades;
 asyncCall();
 var fabconnection;
@@ -95,19 +95,12 @@ function initConection() {
 async function asyncCall() {
   console.log('Init fabric connection');
   await initConection();
+
+
+
 }
 //getAuthToken();
 
-
-
-
-let subscriptions;
-// IF 401
-/* GET home page.  */
-router.get('/suscribir', function (req, res, next) {
-  getEntidades();
-  //suscribirseATodosLosSensores();
-});
 
 router.get('/actualizarconfig', function (req, res, next) {
   var jsonFile;
@@ -142,11 +135,15 @@ router.get('/actualizarconfig', function (req, res, next) {
         entityid = jsonObject[i].id;
         attributes = [];
         // nos quedamos con cada atributo que contenga input (sensor)
+        timestampForConfig = new Date(Date.now());
+        timestampForConfig.setMonth(8)
+        timestampForConfig.setDate(20);
+        timestampForConfig.setHours(0, 0, 0, 0);
         for (var attributename in jsonObject[i]) {
           if (attributename.includes("Input")) {// es un sensor
             attributeJson = {
               id: attributename, description: "",
-              lasttimestamp: null
+              lasttimestamp: timestampForConfig.toISOString()
             }//jsonObject[i][attributename]['metadata']['timestamp']['value']}
             attributes.push(attributeJson);
           }
@@ -177,87 +174,84 @@ router.get('/actualizarconfig', function (req, res, next) {
 });
 
 router.get('/iniciar', function (req, res, next) {
-  // var cron = require('node-cron');
-  // comprobar que se ha inicializado // timestamp de los config
-  fabconnection.queryChaincode("getconfig", ["config.json"], {}).then(queryChaincodeResponse => {
-    //res.status(200).send(queryChaincodeResponse.invokeResult);
-    jsonObject = JSON.parse(JSON.stringify(queryChaincodeResponse));
-    jsonObject = JSON.parse(jsonObject.queryResult);
-    element = jsonObject.entities;
-    for (let j = 0; j < element.length; j++) {
-      // tiene lasttimestamp?
-      attributes = element[j].attributes;
-      console.log('attributes: ' + attributes.length)
-      for (let i = 0; i < attributes.length; i++) {
-        console.log('lasttimestamp: ' + attributes[i].lasttimestamp)
-        if (attributes[i].lasttimestamp === null) { // no está inicializado => inicializar => get todos los historicos historicos hasta hoy 
-          // si está inicializado get todos desde timestamp, no hace falta metodo especifico para cada caso
-          bucleHastaHoy(attributes[i], element[j].id, res); // añadir parametro con el date inicial de la búsqueda y con eso es suficiente para no repetir demasiado código
+  //FUNCIONA cron.schedule('0 * * * *', () => { // run every hour 0 * * * *
+    console.log("CRON CALL")
+
+    // get config del ledger 
+    fabconnection.queryChaincode("getconfig", ["config.json"], {}).then(queryChaincodeResponse => {
+      let today = new Date(Date.now());
+      today.setHours(today.getHours() - 1); // desde hace una hora por si cron no se ejecuta en punto.
+      today.setHours(today.getHours(), 0, 0, 0);
+      console.log('today should be 1 hour more each time: ' + today.toISOString());
+
+      //res.status(200).send(queryChaincodeResponse.invokeResult);
+      jsonObject = JSON.parse(JSON.stringify(queryChaincodeResponse));
+      jsonObject = JSON.parse(jsonObject.queryResult);
+      element = jsonObject.entities;
+      for (let j = 0; j < element.length; j++) { // TODO: actualizar los timestamps de cada atributo en el smartcontract
+        attributes = element[j].attributes;
+        console.log('attributes: ' + attributes.length)
+        for (let i = 0; i < attributes.length; i++) {
+          let lastts = attributes[i].lasttimestamp;
+          console.log('lasttimestamp: ' + attributes[i].lasttimestamp)
+          bucleHastaHoy(attributes[i], element[j].id, res, today, new Date(Date.parse(lastts)));
         }
       }
-    }
-
-    cron.schedule('0 * * * *', () => { // run every hour
-      // get config.json del ledger
-
-      // get historicos
-
-      // recorrer historicos 
+      // recorrer historicos // eliminar duplicados
 
       // publicar uno a uno
 
-      console.log('running a task every minute');
+
 
     });
   });
-});
-function bucleHastaHoy(attribute, entityid, res) {
-  console.log("bucleHastaHoy")
-  today = new Date();
+// FUNCIONA });
+function bucleHastaHoy(attribute, entityid, res, today, lastts) {
+  //console.log("bucleHastaHoy")
   comparer = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), 0, 0, 0);
-  letfrom = new Date(2021, 9, 0, 0, 0, 0);
+  let from = new Date(lastts);
   const doloop = async () => {
+    let jsonwithvalues
     try {
-        do{
-          to = new Date(from);
-          to.setHours(to.getHours()+1)
-          timestampfrom = from.toISOString();
-          timestampto = to.toISOString();
-          path = '/backend/STH/v1/contextEntities/type/Device/id/' + entityid + '/attributes/' + attribute.id + "?hLimit=3600&hOffset=0&dateFrom=" + timestampfrom + "&dateTo=" + timestampto;
-          console.log(path);
-          // construimos el GET HISTORICO http://guardian.odins.es/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
-          var options = {
-            host: "guardian.odins.es",
-            port: 80,
-            path: path,
-            method: 'GET', // POST // CREACION DE TOKEN
-            headers: {
-              "x-access-token": brokerToken
-            }
-          }
-          const config = {
-            method: 'get',
-            url: 'http://guardian.odins.es' + path,
-            headers: {
-              "x-access-token": brokerToken
-            }
-        }
-        console.log('before axios get');
-        let res = await axios(config)
-        //console.log(CircularJSON.stringify(res.data));
-        console.log('RESPUESTA: ' +JSON.stringify(res));
+      do {
+        to = new Date(from);
+        to.setHours(to.getHours() + 1);
+        timestampfrom = from.toISOString();
+        timestampto = to.toISOString();
+        path = '/backend/STH/v1/contextEntities/type/Device/id/' + entityid + '/attributes/' + attribute.id + "?hLimit=3600&hOffset=0&dateFrom=" + timestampfrom + "&dateTo=" + timestampto;
+        //console.log(path);
+        // construimos el GET HISTORICO http://guardian.odins.es/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
 
-          from.setHours(from.getHours()+1)
-        } while(comparer.getTime() > to.getTime())
-        console.log('bucle terminado')
-        
-      } catch (err) {
-        // Handle Error Here
-        console.error(err);
+        const config = {
+          method: 'get',
+          url: 'http://guardian.odins.es' + path,
+          headers: {
+            "x-access-token": brokerToken
+          }
+        }
+
+        //console.log('before axios get');
+        let res = await axios(config)
+        //console.log(CircularJSON.stringify(res.data)+ " - " + timestampto);
+        element = res.data.contextResponses[0].contextElement;
+        let elementid = element.id;
+        let attributeName = element.attributes[0].name;
+        let values = element.attributes[0].values;
+        if (values.length > 0) {
+          console.log('RESPUESTA: ' + JSON.stringify(element.attributes[0]) + " - " + timestampto);
+        }
+
+        from.setHours(from.getHours() + 1)
+      } while (comparer.getTime() > to.getTime())
+      console.log('bucle terminado')
+
+    } catch (err) {
+      // Handle Error Here
+      console.error(err);
     }
-};
-doloop();
-//res.status(200).send('iniciated');
+  };
+  doloop();
+  //res.status(200).send('iniciated');
 }
 
 function getEntidades() {
