@@ -12,10 +12,13 @@ import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.*;
 
 @Contract(
     name = "",
@@ -29,6 +32,7 @@ import java.util.HashMap;
 @Default
 public final class GuardianDataSaver implements ContractInterface {
     // Serializacion JSON
+    private final String CONFIG_NAME = "config.json";
     private final Genson genson = new GensonBuilder().create();//.rename("context","@context").create();
 
     /**
@@ -76,18 +80,53 @@ public final class GuardianDataSaver implements ContractInterface {
     public void publicarconfig(final Context ctx, final String config) {
         ChaincodeStub stub = ctx.getStub();
         // TODO get anterior config y sustituir timestamp config.json
-        stub.putStringState("config.json",config);
+        stub.putStringState(CONFIG_NAME,config);
     }
 
     @Transaction
-    public String getconfig(final Context ctx, final String key ) {
+    public String getconfig(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
-        return stub.getStringState(key);
+        return stub.getStringState(CONFIG_NAME);
     }
 
+    /**
+     *
+     *
+     * @param arrayString an array containing the string with json of historical values.
+     * @param entityID the entityid that owns the attribute
+     * @param attributeName the attribute id/name
+     * @return bool if ok or not
+     */
     @Transaction()
-    public boolean verifyThing(Context ctx, final String data, final String query){
-        throw new ChaincodeException("Method not developed yet", "Ask Admin to complete the contract.");
+    public boolean publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
+        ChaincodeStub stub = ctx.getStub();
+
+        List<Object> objects = new JSONArray(arrayString).toList();
+        for (Object o: objects
+             ) {
+            JSONObject historicoJSON = new JSONObject(o);
+            String historico = historicoJSON.toString(); // {"entityid":"IoTConnector:00027","attrName":"analogInput_614cc3b98562c0e679f16c9d","attrvalue":"-200","recvTime":"2021-09-24T08:14:00.000Z"}
+            stub.putStringState(entityID+attributeName+historicoJSON.getString("recvTime"), historico);
+        }
+
+        // ACTUALIZAR LASTTIMESTAMP DE ESTE ATRIBUTO
+        JSONObject configJSON = new JSONObject(getconfig(ctx));
+        for (Object entity : configJSON.getJSONArray("entities")) {
+            JSONObject jsonEntity = new JSONObject(entity);
+            if (jsonEntity.getString("id").equals(entityID)){
+                for (Object attribute : jsonEntity.getJSONArray("attributes")) {
+                    JSONObject jsonAttribute = new JSONObject(attribute);
+                    if (jsonAttribute.getString("id").equals(attributeName)){
+                        jsonAttribute.put("lasttimestamp", lasttimestamp);
+                        stub.putStringState(CONFIG_NAME, configJSON.toString());
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+
+
     }
 }

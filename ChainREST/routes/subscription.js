@@ -290,10 +290,19 @@ function bucleHastaHoy(attribute, entityid, res, today, lastts) {
             console.log('bucle terminado');
             writeFile(JSON.stringify(jsonwithvalues), attribute.id +'.json');
             if (jsonwithvalues.length > 0) {
-                arraywithvaluesclean = arrUnique(jsonwithvalues); // esto funciona
-                writeFile(JSON.stringify(jsonwithvalues), 'jsonbeforeclean.json');
-                writeFile(JSON.stringify(arraywithvaluesclean), 'arraywithvaluesclean.json');
+                arraywithvaluesclean = arrUnique(jsonwithvalues); 
             }
+            else {
+                arraywithvaluesclean = jsonwithvalues;
+            }
+            // enviar al blockchain // publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
+            fabconnection.invokeChaincode("publicarArrayDeHistoricos", [JSON.stringify(arraywithvaluesclean), elementid, attributeName, today.toISOString()], {}).then(queryChaincodeResponse => {
+                console.log(JSON.stringify(queryChaincodeResponse));
+            }).catch(error => {
+                console.error(error);
+                console.log();
+                console.log(queryChaincodeResponse);
+            });
         } catch (err) {
             // Handle Error Here
             console.error(err);
