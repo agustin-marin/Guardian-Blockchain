@@ -6,6 +6,7 @@ const http = require('http');
 const fs = require('fs')
 const axios = require('axios');
 const { default: fabricNetworkSimple } = require('fabric-network-simple');
+var _ = require('lodash');
 var CircularJSON = require('circular-json');
 
 
@@ -80,7 +81,7 @@ var conf = fabricNetworkSimple.config = {
 var brokerURL = "http://guardian.odins.es/backend/";
 var brokerUser = "guardian@odins.es";
 var brokerpass = "Ygovy8NzS8Jedun8T55wBRAjwXL/ZTFkpPHEhQ8xPpA=";
-var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNTIzODc3NywiZXhwIjoxNjM1MzI1MTc3fQ.-NNpOVGbJvi1qRBbFPhps1XhkL7OkgpBgo-qG0zzWEk";
+var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNTMyNTMwNCwiZXhwIjoxNjM1NDExNzA0fQ.bRVgZ2Dfe92dSdqxezjlWk0Aiwk3_yNSVFNPqhlCuAE";
 var entidades;
 asyncCall();
 var fabconnection;
@@ -211,11 +212,10 @@ router.get('/iniciar', function (req, res, next) {
 
     // get config del ledger 
     fabconnection.queryChaincode("getconfig", ["config.json"], {}).then(queryChaincodeResponse => {
-        //let today = new Date(Date.now());
-        let today =
-            today.setHours(today.getHours() - 1); // desde hace una hora por si cron no se ejecuta en punto.
+        let today = new Date(Date.now());
+        today.setHours(today.getHours() - 1); // desde hace una hora por si cron no se ejecuta en punto.
         // mock 30 september
-        today.setDate(30);
+        today.setDate(25);
         today.setMonth(8);//september
         today.setHours(today.getHours(), 0, 0, 0);
         console.log('today should be 1 hour more each time: ' + today.toISOString());
@@ -273,29 +273,36 @@ function bucleHastaHoy(attribute, entityid, res, today, lastts) {
                 let elementid = element.id;
                 let attributeName = element.attributes[0].name;
                 let values = element.attributes[0].values;
-                if (values.length > 0) {
-
-                    for (let j = 0; j < values.lenght; j++) {
-                        let recvTime = values[j].recvTime;
-                        let attrValue = values[j].attrValue;
+                for (let i in values) {
+                        let recvTime = values[i].recvTime;
+                        let attrValue = values[i].attrValue;
                         jsontopush = {
                             "entityid": elementid,
                             "attrName": attributeName,
                             "attrvalue": attrValue,
                             "recvTime": recvTime
                         }
-                        jsonwithvalues.push(jsontopush)
+                        jsonwithvalues.push(jsontopush);
                     }
-                }
 
                 from.setHours(from.getHours() + 1)
             } while (comparer.getTime() > to.getTime())
-            console.log('bucle terminado')
+            console.log('bucle terminado');
+            writeFile(JSON.stringify(jsonwithvalues), attribute.id +'.json');
             if (jsonwithvalues.length > 0) {
-                arraywithvaluesclean = arrUnique(jsonwithvalues);
-                writeFile(JSON.stringify(jsonwithvalues, 'jsonbeforeclean.json'));
-                writeFile(JSON.stringify(arraywithvaluesclean, 'arraywithvaluesclean.json'));
+                arraywithvaluesclean = arrUnique(jsonwithvalues); 
             }
+            else {
+                arraywithvaluesclean = jsonwithvalues;
+            }
+            // enviar al blockchain // publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
+            fabconnection.invokeChaincode("publicarArrayDeHistoricos", [JSON.stringify(arraywithvaluesclean), elementid, attributeName, today.toISOString()], {}).then(queryChaincodeResponse => {
+                console.log(JSON.stringify(queryChaincodeResponse));
+            }).catch(error => {
+                console.error(error);
+                console.log();
+                console.log(queryChaincodeResponse);
+            });
         } catch (err) {
             // Handle Error Here
             console.error(err);
