@@ -211,7 +211,7 @@ router.get('/iniciar', function (req, res, next) {
     console.log("CRON CALL")
 
     // get config del ledger 
-    fabconnection.queryChaincode("getconfig", ["config.json"], {}).then(queryChaincodeResponse => {
+    fabconnection.queryChaincode("getconfig", [], {}).then(queryChaincodeResponse => {
         let today = new Date(Date.now());
         today.setHours(today.getHours() - 1); // desde hace una hora por si cron no se ejecuta en punto.
         // mock 30 september
