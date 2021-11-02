@@ -8,20 +8,17 @@ import org.hyperledger.fabric.contract.annotation.Contract;
 import org.hyperledger.fabric.contract.annotation.Default;
 import org.hyperledger.fabric.contract.annotation.Info;
 import org.hyperledger.fabric.contract.annotation.Transaction;
-import org.hyperledger.fabric.shim.ChaincodeException;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
 @Contract(
-    name = "",
+        name = "",
         info = @Info(
                 title = "Save and verify data from IoT sources",
                 description = "",
@@ -37,8 +34,9 @@ public final class GuardianDataSaver implements ContractInterface {
 
     /**
      * Push data to the ledger
+     *
      * @param data , value to be pushed.
-     * @param key string used to make key = (key + {@link System#nanoTime()})
+     * @param key  string used to make key = (key + {@link System#nanoTime()})
      */
     @Transaction()
     public String pushData(final Context ctx, final String key, final String data) {
@@ -52,26 +50,27 @@ public final class GuardianDataSaver implements ContractInterface {
         }*/
 
         long l = System.nanoTime();
-        stub.putStringState(key+l,data);
+        stub.putStringState(key + l, data);
 
-        return new JSONObject().put(key+l, data).toString();
+        return new JSONObject().put(key + l, data).toString();
     }
 
     /**
      * Pull data to the ledger using couchdb query selectors: . {"selector":{"key":"value","key.key":"value"}}
+     *
      * @return
      */
     @Transaction()
     public String pullData(final Context ctx, final String query) {
         ChaincodeStub stub = ctx.getStub();
-        System.out.println("query: "+query);
+        System.out.println("query: " + query);
         QueryResultsIterator<KeyValue> queryResult = stub.getQueryResult(query);
         HashMap<String, String> results = new HashMap<>();
         //ArrayList<JSONObject> results = new ArrayList<>();
 
 
         for (KeyValue keyValue : queryResult) {
-            results.put(keyValue.getKey(),new String(keyValue.getValue()));
+            results.put(keyValue.getKey(), new String(keyValue.getValue()));
         }
         return genson.serialize(results);
     }
@@ -79,54 +78,62 @@ public final class GuardianDataSaver implements ContractInterface {
     @Transaction()
     public void publicarconfig(final Context ctx, final String config) {
         ChaincodeStub stub = ctx.getStub();
-        // TODO get anterior config y sustituir timestamp config.json
-        stub.putStringState(CONFIG_NAME,config);
+        JSONObject jsonObject = new JSONObject(config);
+        JSONArray entities = jsonObject.getJSONArray("entities");
+        for (int i = 0; i < entities.toList().size(); i++) {
+            JSONObject entityJSON = entities.getJSONObject(i);
+            String id1 = entityJSON.getString("id");
+            JSONArray attributesJSON = entityJSON.getJSONArray("attributes");
+            for (int j = 0; j < attributesJSON.toList().size(); j++) {
+                JSONObject attributeJSON = attributesJSON.getJSONObject(j);
+                String id = attributeJSON.getString("id");
+                String lasttimestamp = attributeJSON.getString("lasttimestamp");
+                stub.putStringState(id1 + id + "lasttimestamp", lasttimestamp);
+                attributeJSON.remove("lasttimestamp");
+            }
+        }
+        stub.putStringState(CONFIG_NAME, jsonObject.toString());
     }
 
     @Transaction
     public String getconfig(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
-
-        return stub.getStringState(CONFIG_NAME);
-    }
-
-    /**
-     *
-     *
-     * @param arrayString an array containing the string with json of historical values.
-     * @param entityID the entityid that owns the attribute
-     * @param attributeName the attribute id/name
-     * @return bool if ok or not
-     */
-    @Transaction()
-    public boolean publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
-        ChaincodeStub stub = ctx.getStub();
-
-        List<Object> objects = new JSONArray(arrayString).toList();
-        for (Object o: objects
-             ) {
-            JSONObject historicoJSON = new JSONObject(o);
-            String historico = historicoJSON.toString(); // {"entityid":"IoTConnector:00027","attrName":"analogInput_614cc3b98562c0e679f16c9d","attrvalue":"-200","recvTime":"2021-09-24T08:14:00.000Z"}
-            stub.putStringState(entityID+attributeName+historicoJSON.getString("recvTime"), historico);
-        }
-
-        // ACTUALIZAR LASTTIMESTAMP DE ESTE ATRIBUTO
-        JSONObject configJSON = new JSONObject(getconfig(ctx));
-        for (Object entity : configJSON.getJSONArray("entities")) {
-            JSONObject jsonEntity = new JSONObject(entity);
-            if (jsonEntity.getString("id").equals(entityID)){
-                for (Object attribute : jsonEntity.getJSONArray("attributes")) {
-                    JSONObject jsonAttribute = new JSONObject(attribute);
-                    if (jsonAttribute.getString("id").equals(attributeName)){
-                        jsonAttribute.put("lasttimestamp", lasttimestamp);
-                        stub.putStringState(CONFIG_NAME, configJSON.toString());
-                        return true;
-                    }
-                }
+        String stringState = stub.getStringState(CONFIG_NAME);
+        JSONObject configJSON = new JSONObject(stringState);
+        JSONArray entities = configJSON.getJSONArray("entities");
+        for (int i = 0; i < entities.toList().size(); i++) {
+            JSONObject entityJSON = entities.getJSONObject(i);
+            String id1 = entityJSON.getString("id");
+            JSONArray attributesJSON = entityJSON.getJSONArray("attributes");
+            for (int j = 0; j < attributesJSON.toList().size(); j++) {
+                JSONObject attributeJSON = attributesJSON.getJSONObject(j);
+                String id = attributeJSON.getString("id");
+                String lasttimestamp = stub.getStringState(id1 + id + "lasttimestamp");
+                attributeJSON.put("lasttimestamp", lasttimestamp);
             }
         }
-        return false;
-
-
+        return configJSON.toString();
     }
-}
+            /**
+             * @param arrayString   an array containing the string with json of historical values.
+             * @param entityID      the entityid that owns the attribute
+             * @param attributeName the attribute id/name
+             * @return bool if ok or not
+             */
+            @Transaction()
+            public boolean publicarArrayDeHistoricos (Context ctx,final String arrayString, final String entityID,
+            final String attributeName, final String lasttimestamp){
+                ChaincodeStub stub = ctx.getStub();
+
+                List<Object> objects = new JSONArray(arrayString).toList();
+                for (Object o : objects
+                ) {
+                    JSONObject historicoJSON = new JSONObject(o);
+                    String historico = historicoJSON.toString(); // {"entityid":"IoTConnector:00027","attrName":"analogInput_614cc3b98562c0e679f16c9d","attrvalue":"-200","recvTime":"2021-09-24T08:14:00.000Z"}
+                    stub.putStringState(entityID + attributeName + historicoJSON.getString("recvTime"), historico);
+                }
+                // update lasttimestamp
+                stub.putStringState(entityID+attributeName+"lasttimestamp", lasttimestamp);
+                return false;
+            }
+        }

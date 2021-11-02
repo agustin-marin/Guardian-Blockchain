@@ -9,79 +9,90 @@ const { default: fabricNetworkSimple } = require('fabric-network-simple');
 var _ = require('lodash');
 var CircularJSON = require('circular-json');
 
-
-var conf = fabricNetworkSimple.config = {
-    channelName: "mychannel",
-    contractName: "GuardianSC",
-    connectionProfile: {
-        name: "umu.fabric",
-        version: "1.0.0",
-        channels: {
-            mychannel: {
-                orderers: ["orderer.odins.com"],
-                peers: {
-                    "peer0.org1.odins.com": {
-                        endorsingPeer: true,
-                        chaincodeQuery: true,
-                        ledgerQuery: true,
-                        eventSource: true,
-                        discover: true
+async function publicarHistoricos(arraywithvaluesclean,entityid, attributeid, todaytoISOString){
+    var conf = fabricNetworkSimple.config = {
+        channelName: "mychannel",
+        contractName: "GuardianSC",
+        connectionProfile: {
+            name: "umu.fabric",
+            version: "1.0.0",
+            channels: {
+                mychannel: {
+                    orderers: ["orderer.odins.com"],
+                    peers: {
+                        "peer0.org1.odins.com": {
+                            endorsingPeer: true,
+                            chaincodeQuery: true,
+                            ledgerQuery: true,
+                            eventSource: true,
+                            discover: true
+                        }
                     }
+                },
+            },
+            organizations: {
+                Org1: {
+                    mspid: "Org1MSP",
+                    peers: ["peer0.org1.odins.com"],
+                    certificateAuthorities: ["ca.org1.odins.com"]
                 }
             },
-        },
-        organizations: {
-            Org1: {
-                mspid: "Org1MSP",
-                peers: ["peer0.org1.odins.com"],
-                certificateAuthorities: ["ca.org1.odins.com"]
-            }
-        },
-        orderers: {
-            "orderer.odins.com": {
-                url: "grpcs://10.9.26.101:7050",
-                tlsCACerts: {
-                    path:
-                        "/home/debian/ChainREST/test/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem",
-                },
-            }
-        },
-        peers: {
-            "peer0.org1.odins.com": {
-                "url": "grpcs://10.9.26.103:7051",
-                tlsCACerts: {
-                    path:
-                        "/home/debian/ChainREST/test/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp/tlscacerts/tlsca.org1.odins.com-cert.pem",
+            orderers: {
+                "orderer.odins.com": {
+                    url: "grpcs://10.9.26.101:7050",
+                    tlsCACerts: {
+                        path:
+                            "/home/debian/ChainREST/test/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem",
+                    },
+                }
+            },
+            peers: {
+                "peer0.org1.odins.com": {
+                    "url": "grpcs://10.9.26.103:7051",
+                    tlsCACerts: {
+                        path:
+                            "/home/debian/ChainREST/test/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp/tlscacerts/tlsca.org1.odins.com-cert.pem",
+                    },
                 },
             },
         },
-    },
-    certificateAuthorities: {
-        "ca.org1.odins.com": {
-            "url": "https://10.9.26.102:7054",
-            "httpOptions": {
-                "verify": false
-            },
-            "registrar": [{
-                "enrollId": "admin",
-                "enrollSecret": "adminpw"
-            }]
+        certificateAuthorities: {
+            "ca.org1.odins.com": {
+                "url": "https://10.9.26.102:7054",
+                "httpOptions": {
+                    "verify": false
+                },
+                "registrar": [{
+                    "enrollId": "admin",
+                    "enrollSecret": "adminpw"
+                }]
+            }
+        },
+        identity: {
+            mspid: 'Org1MSP',
+            certificate: '-----BEGIN CERTIFICATE-----\nMIICJDCCAcugAwIBAgIRAMLJ5Dq0suLCbnAlFiOlpAcwCgYIKoZIzj0EAwIwbzEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFzAVBgNVBAoTDm9yZzEub2RpbnMuY29tMRowGAYDVQQDExFjYS5v\ncmcxLm9kaW5zLmNvbTAeFw0yMTA5MDYxMDIzMDBaFw0zMTA5MDQxMDIzMDBaMGox\nCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4g\nRnJhbmNpc2NvMQ8wDQYDVQQLEwZjbGllbnQxHTAbBgNVBAMMFFVzZXIxQG9yZzEu\nb2RpbnMuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERy/BIdw/vc8BZZ6d\nUod3QRhJuoiR21lnpbl58bUluqzr9+TPiSIG4hPjoXRB68tZRNb5w9+ismmHWQ9o\nZuwCT6NNMEswDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQw\nIoAgfX1EitPfGt967D5Yk2YfW6mEpKtOOC+iGKq2F1lDmNIwCgYIKoZIzj0EAwID\nRwAwRAIgYaEKPnG9fsLHZj8+vKyHzQZH5tHgyTV2DnIwkC1ZI3kCICU5Xt+OZIKx\nnuuWNoymboSHQvl2gZri06hLuWs6o6Ui\n-----END CERTIFICATE-----\n',
+            privateKey: '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwJbDMaWvCM78o9ZF\nyWXs2/yLx3s6paHP04SpBVRIiO6hRANCAARHL8Eh3D+9zwFlnp1Sh3dBGEm6iJHb\nWWeluXnxtSW6rOv35M+JIgbiE+OhdEHry1lE1vnD36KyaYdZD2hm7AJP\n-----END PRIVATE KEY-----\n',
+        },
+        settings: {
+            enableDiscovery: true,
+            asLocalhost: false,
         }
-    },
-    identity: {
-        mspid: 'Org1MSP',
-        certificate: '-----BEGIN CERTIFICATE-----\nMIICJDCCAcugAwIBAgIRAMLJ5Dq0suLCbnAlFiOlpAcwCgYIKoZIzj0EAwIwbzEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFzAVBgNVBAoTDm9yZzEub2RpbnMuY29tMRowGAYDVQQDExFjYS5v\ncmcxLm9kaW5zLmNvbTAeFw0yMTA5MDYxMDIzMDBaFw0zMTA5MDQxMDIzMDBaMGox\nCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4g\nRnJhbmNpc2NvMQ8wDQYDVQQLEwZjbGllbnQxHTAbBgNVBAMMFFVzZXIxQG9yZzEu\nb2RpbnMuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERy/BIdw/vc8BZZ6d\nUod3QRhJuoiR21lnpbl58bUluqzr9+TPiSIG4hPjoXRB68tZRNb5w9+ismmHWQ9o\nZuwCT6NNMEswDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQw\nIoAgfX1EitPfGt967D5Yk2YfW6mEpKtOOC+iGKq2F1lDmNIwCgYIKoZIzj0EAwID\nRwAwRAIgYaEKPnG9fsLHZj8+vKyHzQZH5tHgyTV2DnIwkC1ZI3kCICU5Xt+OZIKx\nnuuWNoymboSHQvl2gZri06hLuWs6o6Ui\n-----END CERTIFICATE-----\n',
-        privateKey: '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwJbDMaWvCM78o9ZF\nyWXs2/yLx3s6paHP04SpBVRIiO6hRANCAARHL8Eh3D+9zwFlnp1Sh3dBGEm6iJHb\nWWeluXnxtSW6rOv35M+JIgbiE+OhdEHry1lE1vnD36KyaYdZD2hm7AJP\n-----END PRIVATE KEY-----\n',
-    },
-    settings: {
-        enableDiscovery: true,
-        asLocalhost: false,
     }
+    fabconn = new fabricNetworkSimple(conf);
+
+    fabconn.invokeChaincode("publicarArrayDeHistoricos", [arraywithvaluesclean, entityid, attributeid, todaytoISOString], {}).then(queryChaincodeResponse => {
+        console.log(JSON.stringify(queryChaincodeResponse));
+    }).catch(error => {
+        console.error(error);
+        console.log();
+        console.log(queryChaincodeResponse);
+    });
 }
-var brokerURL = "http://guardian.odins.es/backend/";
+
+var brokerURL = "http://155.54.95.124/backend/";
 var brokerUser = "guardian@odins.es";
 var brokerpass = "Ygovy8NzS8Jedun8T55wBRAjwXL/ZTFkpPHEhQ8xPpA=";
-var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNTMyNTMwNCwiZXhwIjoxNjM1NDExNzA0fQ.bRVgZ2Dfe92dSdqxezjlWk0Aiwk3_yNSVFNPqhlCuAE";
+var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNTg0MzEzOCwiZXhwIjoxNjM1OTI5NTM4fQ.9kKqb1JolA-dXlNfV55vkUf1uGx0IKPPNrTcyyhdfys";
 var entidades;
 asyncCall();
 var fabconnection;
@@ -106,7 +117,7 @@ async function asyncCall() {
 router.get('/actualizarconfig', function (req, res, next) {
     var jsonFile;
     const options = {
-        hostname: "guardian.odins.es",
+        hostname: "155.54.95.124",
         port: 80,
         path: '/backend/v2/entities',
         method: 'GET',
@@ -131,6 +142,9 @@ router.get('/actualizarconfig', function (req, res, next) {
             const timeElapsed = Date.now();
             const today = new Date(timeElapsed);
             lasttimestamp = today.toISOString(); // "2020-06-13T18:30:00.000Z"
+            today.setHours(0,0,0,0);
+            today.setDate(22);
+            today.setMonth(8);
             entities = [];
             for (var i = 0; i < jsonObject.length; i++) {
                 entityid = jsonObject[i].id;
@@ -140,7 +154,7 @@ router.get('/actualizarconfig', function (req, res, next) {
                     if (attributename.includes("Input")) {// es un sensor
                         attributeJson = {
                             id: attributename, description: "",
-                            lasttimestamp: null
+                            lasttimestamp: today.toISOString()
                         }//jsonObject[i][attributename]['metadata']['timestamp']['value']}
                         attributes.push(attributeJson);
                     }
@@ -256,11 +270,11 @@ function bucleHastaHoy(attribute, entityid, res, today, lastts) {
                 timestampto = to.toISOString();
                 path = '/backend/STH/v1/contextEntities/type/Device/id/' + entityid + '/attributes/' + attribute.id + "?hLimit=3600&hOffset=0&dateFrom=" + timestampfrom + "&dateTo=" + timestampto;
                 //console.log(path);
-                // construimos el GET HISTORICO http://guardian.odins.es/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
+                // construimos el GET HISTORICO http://155.54.95.124/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
 
                 const config = {
                     method: 'get',
-                    url: 'http://guardian.odins.es' + path,
+                    url: 'http://155.54.95.124' + path,
                     headers: {
                         "x-access-token": brokerToken
                     }
@@ -296,13 +310,14 @@ function bucleHastaHoy(attribute, entityid, res, today, lastts) {
                 arraywithvaluesclean = jsonwithvalues;
             }
             // enviar al blockchain // publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
-            fabconnection.invokeChaincode("publicarArrayDeHistoricos", [JSON.stringify(arraywithvaluesclean), elementid, attributeName, today.toISOString()], {}).then(queryChaincodeResponse => {
+            publicarHistoricos(arraywithvaluesclean, entityid, attribute.id, today.toISOString());
+            /*fabconnection.invokeChaincode("publicarArrayDeHistoricos", [JSON.stringify(arraywithvaluesclean), entityid, attribute.id, today.toISOString()], {}).then(queryChaincodeResponse => {
                 console.log(JSON.stringify(queryChaincodeResponse));
             }).catch(error => {
                 console.error(error);
                 console.log();
                 console.log(queryChaincodeResponse);
-            });
+            });*/
         } catch (err) {
             // Handle Error Here
             console.error(err);
@@ -315,7 +330,7 @@ function bucleHastaHoy(attribute, entityid, res, today, lastts) {
 function getEntidades() {
     var jsonFile;
     const options = {
-        hostname: "guardian.odins.es",
+        hostname: "155.54.95.124",
         port: 80,
         path: '/backend/v2/entities',
         method: 'GET',
@@ -368,9 +383,9 @@ function getEntidades() {
                 for (var j = 0; j < attributes.length; j++) {
                     attribute = attributes[j];
                     path = '/backend/STH/v1/contextEntities/type/Device/id/' + entity.id + '/attributes/' + attribute.id + "?hLimit=99999&hOffset=0";
-                    // construimos el GET HISTORICO http://guardian.odins.es/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
+                    // construimos el GET HISTORICO http://155.54.95.124/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
                     var options = {
-                        host: "guardian.odins.es",
+                        host: "155.54.95.124",
                         port: 80,
                         path: path,
                         method: 'GET', // POST // CREACION DE TOKEN
@@ -417,7 +432,7 @@ function getEntidades() {
 function getAuthToken() {
     jsonbody = { "login": brokerUser, "password": brokerpass }
     var options = {
-        host: "guardian.odins.es",
+        host: "155.54.95.124",
         port: 80,
         path: '/backend/authtoken',
         method: 'POST', // POST // CREACION DE TOKEN
