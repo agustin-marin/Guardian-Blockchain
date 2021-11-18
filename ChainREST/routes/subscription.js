@@ -7,260 +7,162 @@ const fs = require('fs')
 const axios = require('axios');
 const { default: fabricNetworkSimple } = require('fabric-network-simple');
 var _ = require('lodash');
-var CircularJSON = require('circular-json');
-
-async function publicarHistoricos(arraywithvaluesclean,entityid, attributeid, todaytoISOString){
-    var conf = fabricNetworkSimple.config = {
-        channelName: "mychannel",
-        contractName: "GuardianSC",
-        connectionProfile: {
-            name: "umu.fabric",
-            version: "1.0.0",
-            channels: {
-                mychannel: {
-                    orderers: ["orderer.odins.com"],
-                    peers: {
-                        "peer0.org1.odins.com": {
-                            endorsingPeer: true,
-                            chaincodeQuery: true,
-                            ledgerQuery: true,
-                            eventSource: true,
-                            discover: true
-                        }
+conf = fabricNetworkSimple.config = {
+    channelName: "mychannel",
+    contractName: "GuardianSC",
+    connectionProfile: {
+        name: "umu.fabric",
+        version: "1.0.0",
+        channels: {
+            mychannel: {
+                orderers: ["orderer.odins.com"],
+                peers: {
+                    "peer0.org1.odins.com": {
+                        endorsingPeer: true,
+                        chaincodeQuery: true,
+                        ledgerQuery: true,
+                        eventSource: true,
+                        discover: true
                     }
-                },
-            },
-            organizations: {
-                Org1: {
-                    mspid: "Org1MSP",
-                    peers: ["peer0.org1.odins.com"],
-                    certificateAuthorities: ["ca.org1.odins.com"]
                 }
-            },
-            orderers: {
-                "orderer.odins.com": {
-                    url: "grpcs://10.9.26.101:7050",
-                    tlsCACerts: {
-                        path:
-                            "/home/debian/ChainREST/test/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem",
-                    },
-                }
-            },
-            peers: {
-                "peer0.org1.odins.com": {
-                    "url": "grpcs://10.9.26.103:7051",
-                    tlsCACerts: {
-                        path:
-                            "/home/debian/ChainREST/test/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp/tlscacerts/tlsca.org1.odins.com-cert.pem",
-                    },
-                },
             },
         },
-        certificateAuthorities: {
-            "ca.org1.odins.com": {
-                "url": "https://10.9.26.102:7054",
-                "httpOptions": {
-                    "verify": false
-                },
-                "registrar": [{
-                    "enrollId": "admin",
-                    "enrollSecret": "adminpw"
-                }]
+        organizations: {
+            Org1: {
+                mspid: "Org1MSP",
+                peers: ["peer0.org1.odins.com"],
+                certificateAuthorities: ["ca.org1.odins.com"]
             }
         },
-        identity: {
-            mspid: 'Org1MSP',
-            certificate: '-----BEGIN CERTIFICATE-----\nMIICJDCCAcugAwIBAgIRAMLJ5Dq0suLCbnAlFiOlpAcwCgYIKoZIzj0EAwIwbzEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFzAVBgNVBAoTDm9yZzEub2RpbnMuY29tMRowGAYDVQQDExFjYS5v\ncmcxLm9kaW5zLmNvbTAeFw0yMTA5MDYxMDIzMDBaFw0zMTA5MDQxMDIzMDBaMGox\nCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4g\nRnJhbmNpc2NvMQ8wDQYDVQQLEwZjbGllbnQxHTAbBgNVBAMMFFVzZXIxQG9yZzEu\nb2RpbnMuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERy/BIdw/vc8BZZ6d\nUod3QRhJuoiR21lnpbl58bUluqzr9+TPiSIG4hPjoXRB68tZRNb5w9+ismmHWQ9o\nZuwCT6NNMEswDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQw\nIoAgfX1EitPfGt967D5Yk2YfW6mEpKtOOC+iGKq2F1lDmNIwCgYIKoZIzj0EAwID\nRwAwRAIgYaEKPnG9fsLHZj8+vKyHzQZH5tHgyTV2DnIwkC1ZI3kCICU5Xt+OZIKx\nnuuWNoymboSHQvl2gZri06hLuWs6o6Ui\n-----END CERTIFICATE-----\n',
-            privateKey: '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwJbDMaWvCM78o9ZF\nyWXs2/yLx3s6paHP04SpBVRIiO6hRANCAARHL8Eh3D+9zwFlnp1Sh3dBGEm6iJHb\nWWeluXnxtSW6rOv35M+JIgbiE+OhdEHry1lE1vnD36KyaYdZD2hm7AJP\n-----END PRIVATE KEY-----\n',
+        orderers: {
+            "orderer.odins.com": {
+                url: "grpcs://10.9.26.101:7050",
+                tlsCACerts: {
+                    path:
+                        "/home/debian/ChainREST/test/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem",
+                },
+            }
         },
-        settings: {
-            enableDiscovery: true,
-            asLocalhost: false,
+        peers: {
+            "peer0.org1.odins.com": {
+                "url": "grpcs://10.9.26.103:7051",
+                tlsCACerts: {
+                    path:
+                        "/home/debian/ChainREST/test/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp/tlscacerts/tlsca.org1.odins.com-cert.pem",
+                },
+            },
+        },
+    },
+    certificateAuthorities: {
+        "ca.org1.odins.com": {
+            "url": "https://10.9.26.102:7054",
+            "httpOptions": {
+                "verify": false
+            },
+            "registrar": [{
+                "enrollId": "admin",
+                "enrollSecret": "adminpw"
+            }]
         }
+    },
+    identity: {
+        mspid: 'Org1MSP',
+        certificate: '-----BEGIN CERTIFICATE-----\nMIICJDCCAcugAwIBAgIRAMLJ5Dq0suLCbnAlFiOlpAcwCgYIKoZIzj0EAwIwbzEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFzAVBgNVBAoTDm9yZzEub2RpbnMuY29tMRowGAYDVQQDExFjYS5v\ncmcxLm9kaW5zLmNvbTAeFw0yMTA5MDYxMDIzMDBaFw0zMTA5MDQxMDIzMDBaMGox\nCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4g\nRnJhbmNpc2NvMQ8wDQYDVQQLEwZjbGllbnQxHTAbBgNVBAMMFFVzZXIxQG9yZzEu\nb2RpbnMuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERy/BIdw/vc8BZZ6d\nUod3QRhJuoiR21lnpbl58bUluqzr9+TPiSIG4hPjoXRB68tZRNb5w9+ismmHWQ9o\nZuwCT6NNMEswDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQw\nIoAgfX1EitPfGt967D5Yk2YfW6mEpKtOOC+iGKq2F1lDmNIwCgYIKoZIzj0EAwID\nRwAwRAIgYaEKPnG9fsLHZj8+vKyHzQZH5tHgyTV2DnIwkC1ZI3kCICU5Xt+OZIKx\nnuuWNoymboSHQvl2gZri06hLuWs6o6Ui\n-----END CERTIFICATE-----\n',
+        privateKey: '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwJbDMaWvCM78o9ZF\nyWXs2/yLx3s6paHP04SpBVRIiO6hRANCAARHL8Eh3D+9zwFlnp1Sh3dBGEm6iJHb\nWWeluXnxtSW6rOv35M+JIgbiE+OhdEHry1lE1vnD36KyaYdZD2hm7AJP\n-----END PRIVATE KEY-----\n',
+    },
+    settings: {
+        enableDiscovery: true,
+        asLocalhost: false,
     }
-    fabconn = new fabricNetworkSimple(conf);
+};
+async function publicarHistoricos(arraywithvaluesclean,entityid, attributeid, todaytoISOString){
 
-    fabconn.invokeChaincode("publicarArrayDeHistoricos", [arraywithvaluesclean, entityid, attributeid, todaytoISOString], {}).then(queryChaincodeResponse => {
-        console.log(JSON.stringify(queryChaincodeResponse));
-    }).catch(error => {
-        console.error(error);
-        console.log();
-        console.log(queryChaincodeResponse);
-    });
+    try {
+        const invokeResult =
+            await fabconnection.invokeChaincode('publicarArrayDeHistoricos', [arraywithvaluesclean, entityid, attributeid, todaytoISOString], {})
+    } catch (e) {
+        console.error("ERROR: "+ e);
+    }
+
 }
 
-var brokerURL = "http://155.54.95.124/backend/";
-var brokerUser = "guardian@odins.es";
-var brokerpass = "Ygovy8NzS8Jedun8T55wBRAjwXL/ZTFkpPHEhQ8xPpA=";
-var brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNTg0MzEzOCwiZXhwIjoxNjM1OTI5NTM4fQ.9kKqb1JolA-dXlNfV55vkUf1uGx0IKPPNrTcyyhdfys";
-var entidades;
+const brokerURL = "http://155.54.95.124/backend/";
+const brokerUser = "guardian@odins.es";
+const brokerpass = "Ygovy8NzS8Jedun8T55wBRAjwXL/ZTFkpPHEhQ8xPpA=";
+let brokerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxNGM5N2EwODU2MmMwNTRmOWYxNmM4ZCIsImlhdCI6MTYzNjEwMjgwMiwiZXhwIjoxNjM2MTg5MjAyfQ.xeEjU8YzeIZKgIHlI3JD81ripqauMDD5stJYlkjswCY";
 asyncCall();
-var fabconnection;
+asyncCall2();
+fabconnection;
 
 function initConection() {
+
     return new Promise(resolve => {
         fabconnection = new fabricNetworkSimple(conf);
     });
 }
-
+async function asyncCall2() {
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+    await delay(3000);
+    console.log("Init IOT connection");
+    const doasync = async () => {
+        await getAuthToken();
+        cron.schedule('00 11,23 * * *', () => { // run every hour 0 * * * *  // 00 11,23 * * * dos veces al dia
+            console.log("CRON authotoken dos veces al dia");
+            getAuthToken();
+        });
+        await bucleDeHistoricos();
+        //mock every minute
+        cron.schedule('0 * * * *', () => { // run every hour 0 * * * *  // 00 11,23 * * * dos veces al dia
+            console.log("CRON HISTORICOS 1 hora");
+            bucleDeHistoricos();
+        });
+    }
+    await doasync();
+}
 async function asyncCall() {
 
     console.log('Init fabric connection');
     await initConection();
 
-    //getAuthToken();
 
 }
-//getAuthToken();
+async function bucleDeHistoricos() {
+    // get config del ledger
+    const queryChaincodeResponse = await fabconnection.queryChaincode("getconfig", [], {});
+    let today = new Date(Date.now());
 
+    today.setHours(today.getHours() - 1); // desde hace una hora por si cron no se ejecuta en punto.
+    today.setHours(today.getHours(), 0, 0, 0);
+    console.log('today should be 1 hour more each time: ' + today.toISOString());
 
-router.get('/actualizarconfig', function (req, res, next) {
-    var jsonFile;
-    const options = {
-        hostname: "155.54.95.124",
-        port: 80,
-        path: '/backend/v2/entities',
-        method: 'GET',
-        headers: {
-            "x-access-token": brokerToken
+    //res.status(200).send(queryChaincodeResponse.invokeResult);
+    let jsonObject = JSON.parse(JSON.stringify(queryChaincodeResponse));
+    jsonObject = JSON.parse(jsonObject.queryResult);
+    let element = jsonObject.entities;
+    let attributes;
+    let before = new Date(Date.now());
+    for (let j = 0; j < element.length; j++) {
+        attributes = element[j].attributes;
+        console.log('attributes: ' + attributes.length)
+        for (let i = 0; i < attributes.length; i++) {
+            let lastts = attributes[i].lasttimestamp;
+            console.log('lasttimestamp: ' + attributes[i].lasttimestamp)
+            console.log("current: entity i: "+ i  + " + j: " +j + "; " +element.length+" + " + attributes.length);
+            await bucleHastaHoy(attributes[i], element[j].id, today, new Date(Date.parse(lastts)));
         }
     }
-
-    http.get(options, (resp) => {
-        let d = '';
-        console.log(`statusCode: ${resp.statusCode}`)
-        if (resp.statusCode === 401) { // bad token
-            //getAuthToken(getEntidades);
-        }
-
-        resp.on('data', (chunk) => {
-            d += chunk;
-        });
-
-        resp.on('end', () => { //
-            jsonObject = JSON.parse(d); // jsonobject es un array de entidades
-            const timeElapsed = Date.now();
-            const today = new Date(timeElapsed);
-            lasttimestamp = today.toISOString(); // "2020-06-13T18:30:00.000Z"
-            today.setHours(0,0,0,0);
-            today.setDate(22);
-            today.setMonth(8);
-            entities = [];
-            for (var i = 0; i < jsonObject.length; i++) {
-                entityid = jsonObject[i].id;
-                attributes = [];
-                // nos quedamos con cada atributo que contenga input (sensor)
-                for (var attributename in jsonObject[i]) {
-                    if (attributename.includes("Input")) {// es un sensor
-                        attributeJson = {
-                            id: attributename, description: "",
-                            lasttimestamp: today.toISOString()
-                        }//jsonObject[i][attributename]['metadata']['timestamp']['value']}
-                        attributes.push(attributeJson);
-                    }
-                }
-                entity = { "id": entityid, "attributes": attributes }
-                entities.push(entity);
-            }
-            jsonFile = { "lasttimestamp": lasttimestamp, "entities": entities }
-            // publicarlo en el ledger como config.json
-            fabconnection.invokeChaincode("publicarconfig", [JSON.stringify(jsonFile)], {}).then(queryChaincodeResponse => {
-                res.status(200).send(queryChaincodeResponse.invokeResult);
-            }).catch(error => {
-                console.log(error);
-                res.status(404).send(error);
-            });
-
-            resp.on('end', () => { //
-                jsonObject = JSON.parse(d); // jsonobject es un array de entidades
-                const timeElapsed = Date.now();
-                const today = new Date(timeElapsed);
-                lasttimestamp = today.toISOString(); // "2020-06-13T18:30:00.000Z"
-                entities = [];
-                for (var i = 0; i < jsonObject.length; i++) {
-                    entityid = jsonObject[i].id;
-                    attributes = [];
-                    // nos quedamos con cada atributo que contenga input (sensor)
-                    timestampForConfig = new Date(Date.now());
-                    timestampForConfig.setMonth(8)
-                    timestampForConfig.setDate(20);
-                    timestampForConfig.setHours(0, 0, 0, 0);
-                    for (var attributename in jsonObject[i]) {
-                        if (attributename.includes("Input")) {// es un sensor
-                            attributeJson = {
-                                id: attributename, description: "",
-                                lasttimestamp: timestampForConfig.toISOString()
-                            }//jsonObject[i][attributename]['metadata']['timestamp']['value']}
-                            attributes.push(attributeJson);
-                        }
-                    }
-                    entity = { "id": entityid, "attributes": attributes }
-                    entities.push(entity);
-                }
-                jsonFile = { "lasttimestamp": lasttimestamp, "entities": entities }
-                // publicarlo en el ledger como config.json
-                fabconnection.invokeChaincode("publicarconfig", [JSON.stringify(jsonFile)], {}).then(queryChaincodeResponse => {
-                    res.status(200).send(queryChaincodeResponse.invokeResult);
-                }).catch(error => {
-                    console.log(error);
-                    res.status(404).send(error);
-                });
-
-                /*newArray.forEach(function(table) {
-                    var tableName = table.name;
-                    console.log(tableName);
-                });*/
-            });
-            resp.on('error', (err) => {
-                console.log("Errrrrrrrror: " + err);
-            });
-
-        })
-
-    });
-})
-
-router.get('/iniciar', function (req, res, next) {
-    //FUNCIONA cron.schedule('0 * * * *', () => { // run every hour 0 * * * *
-    console.log("CRON CALL")
-
-    // get config del ledger 
-    fabconnection.queryChaincode("getconfig", [], {}).then(queryChaincodeResponse => {
-        let today = new Date(Date.now());
-        today.setHours(today.getHours() - 1); // desde hace una hora por si cron no se ejecuta en punto.
-        // mock 30 september
-        today.setDate(25);
-        today.setMonth(8);//september
-        today.setHours(today.getHours(), 0, 0, 0);
-        console.log('today should be 1 hour more each time: ' + today.toISOString());
-
-        //res.status(200).send(queryChaincodeResponse.invokeResult);
-        jsonObject = JSON.parse(JSON.stringify(queryChaincodeResponse));
-        jsonObject = JSON.parse(jsonObject.queryResult);
-        element = jsonObject.entities;
-        for (let j = 0; j < element.length; j++) { // TODO: actualizar los timestamps de cada atributo en el smartcontract
-            attributes = element[j].attributes;
-            console.log('attributes: ' + attributes.length)
-            for (let i = 0; i < attributes.length; i++) {
-                let lastts = attributes[i].lasttimestamp;
-                console.log('lasttimestamp: ' + attributes[i].lasttimestamp)
-                bucleHastaHoy(attributes[i], element[j].id, res, today, new Date(Date.parse(lastts)));
-            }
-        }
-        // recorrer historicos // eliminar duplicados
-
-        // publicar uno a uno
-
-
-
-    });
-});
-// FUNCIONA });
-function bucleHastaHoy(attribute, entityid, res, today, lastts) {
+    let after = new Date(Date.now());
+    console.log("duration: " + before.toISOString() + " - " + after.toISOString())
+}
+async function bucleHastaHoy(attribute, entityid, today, lastts) {
     //console.log("bucleHastaHoy")
     comparer = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), 0, 0, 0);
     let from = new Date(lastts);
-    const doloop = async () => {
+
+        let timestampfrom;
+        let timestampto;
+        let to;
+        let path;
         try {
             let jsonwithvalues = [];
             do {
@@ -282,187 +184,63 @@ function bucleHastaHoy(attribute, entityid, res, today, lastts) {
 
                 //console.log('before axios get');
                 let res = await axios(config)
-                //console.log(CircularJSON.stringify(res.data)+ " - " + timestampto);
                 element = res.data.contextResponses[0].contextElement;
                 let elementid = element.id;
                 let attributeName = element.attributes[0].name;
                 let values = element.attributes[0].values;
                 for (let i in values) {
-                        let recvTime = values[i].recvTime;
-                        let attrValue = values[i].attrValue;
-                        jsontopush = {
-                            "entityid": elementid,
-                            "attrName": attributeName,
-                            "attrvalue": attrValue,
-                            "recvTime": recvTime
-                        }
-                        jsonwithvalues.push(jsontopush);
+                    let recvTime = values[i].recvTime;
+                    let attrValue = values[i].attrValue;
+                    jsontopush = {
+                        "entityid": elementid,
+                        "attrName": attributeName,
+                        "attrvalue": attrValue,
+                        "recvTime": recvTime
                     }
+                    jsonwithvalues.push(jsontopush);
+                }
 
                 from.setHours(from.getHours() + 1)
             } while (comparer.getTime() > to.getTime())
             console.log('bucle terminado');
-            writeFile(JSON.stringify(jsonwithvalues), attribute.id +'.json');
+            writeFile(JSON.stringify(jsonwithvalues), attribute.id + '.json');
             if (jsonwithvalues.length > 0) {
-                arraywithvaluesclean = arrUnique(jsonwithvalues); 
-            }
-            else {
+                arraywithvaluesclean = arrUnique(jsonwithvalues, lastts, today );
+            } else {
                 arraywithvaluesclean = jsonwithvalues;
             }
-            // enviar al blockchain // publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
-            publicarHistoricos(arraywithvaluesclean, entityid, attribute.id, today.toISOString());
-            /*fabconnection.invokeChaincode("publicarArrayDeHistoricos", [JSON.stringify(arraywithvaluesclean), entityid, attribute.id, today.toISOString()], {}).then(queryChaincodeResponse => {
-                console.log(JSON.stringify(queryChaincodeResponse));
-            }).catch(error => {
-                console.error(error);
-                console.log();
-                console.log(queryChaincodeResponse);
-            });*/
         } catch (err) {
             // Handle Error Here
             console.error(err);
         }
-    };
-    doloop();
-    //res.status(200).send('iniciated');
-}
-
-function getEntidades() {
-    var jsonFile;
-    const options = {
-        hostname: "155.54.95.124",
-        port: 80,
-        path: '/backend/v2/entities',
-        method: 'GET',
-        headers: {
-            "x-access-token": brokerToken
-        }
-    }
-
-    http.get(options, (resp) => {
-        let d = '';
-        console.log(`statusCode: ${resp.statusCode}`)
-        if (resp.statusCode == 401) { // bad token
-            //getAuthToken(getEntidades);
-        }
-
-        resp.on('data', (chunk) => {
-            d += chunk;
-        });
-
-        resp.on('end', () => { //escribir en fichero
-            jsonObject = JSON.parse(d); // jsonobject es un array de entidades
-            const timeElapsed = Date.now();
-            const today = new Date(timeElapsed);
-            lasttimestamp = today.toISOString(); // "2020-06-13T18:30:00.000Z"
-            entities = [];
-            for (var i = 0; i < jsonObject.length; i++) {
-                entityid = jsonObject[i].id;
-                attributes = [];
-                // nos quedamos con cada atributo que contenga input (sensor)
-                for (var attributename in jsonObject[i]) {
-                    if (attributename.includes("Input")) {// es un sensor
-                        attributeJson = {
-                            id: attributename, description: "",
-                            lasttimestamp: jsonObject[i][attributename]['metadata']['timestamp']['value']
-                        }
-                        attributes.push(attributeJson);
-                    }
+            let i = 0
+            do {
+                let arraytosend = [];
+                for (let j = i*70; (j < arraywithvaluesclean.length) && (j<((i+1)*70)); j++) {
+                    arraytosend[j-i*70] = arraywithvaluesclean[j];
                 }
-                entity = { "id": entityid, "attributes": attributes }
-                entities.push(entity);
+                // enviar al blockchain // publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
+                await publicarHistoricos(JSON.stringify(arraytosend), entityid, attribute.id, today.toISOString());
+                i++;
+            } while (i*70 < arraywithvaluesclean.length)
 
-            }
-            jsonFile = { "lasttimestamp": lasttimestamp, "entities": entities }
-
-            // ahora quiero recorrer json file para pedir historicos
-            entities = jsonFile.entities;
-            for (var i = 0; i < entities.length; i++) {
-                entity = entities[i];
-                attributes = entity.attributes;
-                for (var j = 0; j < attributes.length; j++) {
-                    attribute = attributes[j];
-                    path = '/backend/STH/v1/contextEntities/type/Device/id/' + entity.id + '/attributes/' + attribute.id + "?hLimit=99999&hOffset=0";
-                    // construimos el GET HISTORICO http://155.54.95.124/backend/STH/v1/contextEntities/type/Device/id/IoTConnector:00027/attributes/digitalInput_614cc3e98562c007eaf16ca9?hLimit=3&hOffset=0
-                    var options = {
-                        host: "155.54.95.124",
-                        port: 80,
-                        path: path,
-                        method: 'GET', // POST // CREACION DE TOKEN
-                        headers: {
-                            "x-access-token": brokerToken
-                        }
-                    }
-                    http.get(options, (resp) => {
-                        let d = '';
-                        console.log(`statusCode: ${resp.statusCode}`)
-                        resp.on('data', (chunk) => {
-                            d += chunk;
-                        });
-
-                        resp.on('end', () => {
-                            jsonObject = JSON.parse(d); // jsonobject es un array de entidades
-                            console.log(d);
-                        });
-                        resp.on('error', (err) => {
-                            console.log("Errrrrrrrror: " + err);
-                        });
-
-                    })
-
-                }
-
-            }
-
-            writeFile(JSON.stringify(jsonFile));
-            /*newArray.forEach(function(table) {
-                var tableName = table.name;
-                console.log(tableName);
-            });*/
-        });
-        resp.on('error', (err) => {
-            console.log("Errrrrrrrror: " + err);
-        });
-
-    })
 
 }
 
-
-function getAuthToken() {
+async function getAuthToken() {
     jsonbody = { "login": brokerUser, "password": brokerpass }
-    var options = {
-        host: "155.54.95.124",
-        port: 80,
-        path: '/backend/authtoken',
-        method: 'POST', // POST // CREACION DE TOKEN
-        headers: {
+    const config = {
+        url: 'http://155.54.95.124/backend/authtoken',
+        method: 'post', // POST // CREACION DE TOKEN
+        /*headers: {
             'Content-Type': 'application/json',
             'Content-Length': JSON.stringify(jsonbody).length
-        }
+        },*/
+        data : { "login": brokerUser, "password": brokerpass }
     }
-
-    req = http.request(options, (resp) => {
-        let data = '';
-
-        // A chunk of data has been received.
-        resp.on('data', (chunk) => {
-            data += chunk;
-        });
-
-        // The whole response has been received.
-        resp.on('end', () => {
-            console.log(data);
-            brokerToken = JSON.parse(data).access_token;
-            console.log(brokerToken);
-        });
-
-    }).on("error", (err) => {
-        console.log("Error: " + err.message);
-    })
-    console.log("JSON?: " + jsonbody)
-    req.write(JSON.stringify(jsonbody));
-    req.end()
+    const res = await axios(config);
+    brokerToken = res.data.access_token;
+    console.log(brokerToken);
 }
 
 
@@ -470,12 +248,16 @@ function writeFile(content, name) {
     fs.writeFile('/tmp/' + name, content, err => {
         if (err) {
             console.error(err)
-            return
+            return;
         }
         //file written successfully
     })
 }
-function arrUnique(arr) {
+function arrUnique(arr, lastts, today ) {
+    let endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), today.getHours(), 0, 0, 0);
+    let startDate = new Date(lastts);
+    let aDate = new Date();
+
     var cleaned = [];
     arr.forEach(function (itm) {
         var unique = true;
@@ -484,17 +266,12 @@ function arrUnique(arr) {
         });
         if (unique) cleaned.push(itm);
     });
-    return cleaned;
+    const filteredData = cleaned.filter(function (a) {
+        aDate = new Date(a.recvTime);
+        return aDate >= startDate && aDate <= endDate;
+    });
+    return filteredData;
 }
 
 module.exports = router;
-/*
-var options = {
-    host :  'graph.facebook.com',
-    port : 80,
-    path : '/debug_token?input_token=' + userAccessToken + '&access_token=' + appAccessToken,
-    method : 'GET',
-    headers: {
-        "x-acces-token": brokerToken
-    }
-}*/
+

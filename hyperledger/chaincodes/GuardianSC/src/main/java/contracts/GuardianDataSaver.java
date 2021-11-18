@@ -94,7 +94,37 @@ public final class GuardianDataSaver implements ContractInterface {
         }
         stub.putStringState(CONFIG_NAME, jsonObject.toString());
     }
+    @Transaction()
+    public String getHistoricos(final Context ctx, final String entityID, final String attrID, final String fromDate, final String toDate) {
+        ChaincodeStub stub = ctx.getStub();
 
+        JSONObject selectorJSON = new JSONObject().put("selector",
+                new JSONObject());
+        if (!entityID.equals("*")){
+            selectorJSON.put("entityid", entityID);
+        }
+        if (!attrID.equals("*")){
+            selectorJSON.put("attrName", attrID);
+        }
+        if (!fromDate.isEmpty() || !toDate.isEmpty()){
+            selectorJSON.put("recvTime",new JSONObject());
+            if (!fromDate.isEmpty())
+                selectorJSON.getJSONObject("recvTime")
+                    .put("$gt", fromDate);
+            if (!toDate.isEmpty())
+                selectorJSON.getJSONObject("recvTime")
+                       .put("$lt", toDate);
+
+        }
+        String s = selectorJSON.toString();
+        HashMap<String, String> results = new HashMap<>();
+        QueryResultsIterator<KeyValue> result = stub.getQueryResult(s);
+        for (KeyValue keyValue : result) {
+            results.put(keyValue.getKey(), new String(keyValue.getValue()));
+        }
+        return genson.serialize(results);
+
+    }
     @Transaction
     public String getconfig(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
@@ -124,11 +154,10 @@ public final class GuardianDataSaver implements ContractInterface {
             public boolean publicarArrayDeHistoricos (Context ctx,final String arrayString, final String entityID,
             final String attributeName, final String lasttimestamp){
                 ChaincodeStub stub = ctx.getStub();
-
-                List<Object> objects = new JSONArray(arrayString).toList();
-                for (Object o : objects
-                ) {
-                    JSONObject historicoJSON = new JSONObject(o);
+                JSONArray jsonArray = new JSONArray(arrayString);
+                List<Object> objects = jsonArray.toList();
+                for (int i = 0; i < objects.size(); i++) {
+                    JSONObject historicoJSON = jsonArray.getJSONObject(i);
                     String historico = historicoJSON.toString(); // {"entityid":"IoTConnector:00027","attrName":"analogInput_614cc3b98562c0e679f16c9d","attrvalue":"-200","recvTime":"2021-09-24T08:14:00.000Z"}
                     stub.putStringState(entityID + attributeName + historicoJSON.getString("recvTime"), historico);
                 }

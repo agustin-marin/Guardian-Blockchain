@@ -6,16 +6,16 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "axios": "0.24.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "fabric-network-simple": "^1.1.0",
     "http-errors": "~1.6.3",
+    "lodash": "4.3.0",
     "morgan": "~1.9.1",
     "node-cron": "^2.0.3",
-    "pug": "^3.0.2",
-    "axios":"0.24.0",
-    "lodash":"4.3.0"
+    "pug": "^3.0.2"
   },
   "devDependencies": {
     "babel-preset-env": "^1.7.0",

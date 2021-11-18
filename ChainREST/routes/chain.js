@@ -107,8 +107,30 @@ router.post('/pulldata/', function(req, res, next) {
   console.log(query);
   //fabconnection.invokeChaincode('addservice', [JSON.stringify(servicedid), domain, JSON.stringify(predicates), status], {})
   fabconnection.queryChaincode('pullData',[query],{}).then(queryChaincodeResponse => {
-    console.log('result: '+ queryChaincodeResponse.queryResult)
-    res.status(200).send(queryChaincodeResponse.queryResult)//JSON.parse(queryChaincodeResponse.queryResult[0]));
+    console.log('result: '+ queryChaincodeResponse)
+    res.status(200).send(queryChaincodeResponse)//JSON.parse(queryChaincodeResponse.queryResult[0]));
+  }).catch ( error => {
+    console.log(error);
+    res.status(404).send(error);
+  });
+});
+
+router.get('/gethistoricos', function(req, res, next) {
+  let entity = req.query.entity;
+  let attribute = req.query.attribute;
+  let from= "";
+  let to= "";
+  if ( typeof req.query.from !== 'undefined' && req.query.from )
+  {
+    from = req.query.from;
+  }
+  if ( typeof req.query.to !== 'undefined' && req.query.to )
+  {
+    to = req.query.to;
+  }
+
+  fabconnection.invokeChaincode("getHistoricos", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
+    res.status(200).send(queryChaincodeResponse);
   }).catch ( error => {
     console.log(error);
     res.status(404).send(error);
