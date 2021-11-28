@@ -110,10 +110,10 @@ public final class GuardianDataSaver implements ContractInterface {
             selectorJSON.put("recvTime",new JSONObject());
             if (!fromDate.isEmpty())
                 selectorJSON.getJSONObject("recvTime")
-                    .put("$gt", fromDate);
+                    .put("$gte", fromDate);
             if (!toDate.isEmpty())
                 selectorJSON.getJSONObject("recvTime")
-                       .put("$lt", toDate);
+                       .put("$lte", toDate);
 
         }
         String s = selectorJSON.toString();
