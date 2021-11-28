@@ -112,7 +112,7 @@ async function asyncCall2() {
         });
         await bucleDeHistoricos();
         //mock every minute
-        cron.schedule('0 * * * *', () => { // run every hour 0 * * * *  // 00 11,23 * * * dos veces al dia
+        cron.schedule('15 * * * *', () => { // run every hour at min 15 - 15 * * * *  // 00 11,23 * * * dos veces al dia
             console.log("CRON HISTORICOS 1 hora");
             bucleDeHistoricos();
         });
