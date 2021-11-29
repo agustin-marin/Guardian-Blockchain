@@ -13,6 +13,16 @@ conf = fabricNetworkSimple.config = {
     connectionProfile: {
         name: "umu.fabric",
         version: "1.0.0",
+        client: {
+            organization: "Org1",
+            connection: {
+                timeout: {
+                    peer: {
+                        endorser: 3000
+                    }
+                }
+            }
+        },
         channels: {
             mychannel: {
                 orderers: ["orderer.odins.com"],
@@ -67,8 +77,8 @@ conf = fabricNetworkSimple.config = {
     },
     identity: {
         mspid: 'Org1MSP',
-        certificate: '-----BEGIN CERTIFICATE-----\nMIICJDCCAcugAwIBAgIRAMLJ5Dq0suLCbnAlFiOlpAcwCgYIKoZIzj0EAwIwbzEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFzAVBgNVBAoTDm9yZzEub2RpbnMuY29tMRowGAYDVQQDExFjYS5v\ncmcxLm9kaW5zLmNvbTAeFw0yMTA5MDYxMDIzMDBaFw0zMTA5MDQxMDIzMDBaMGox\nCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4g\nRnJhbmNpc2NvMQ8wDQYDVQQLEwZjbGllbnQxHTAbBgNVBAMMFFVzZXIxQG9yZzEu\nb2RpbnMuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERy/BIdw/vc8BZZ6d\nUod3QRhJuoiR21lnpbl58bUluqzr9+TPiSIG4hPjoXRB68tZRNb5w9+ismmHWQ9o\nZuwCT6NNMEswDgYDVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQw\nIoAgfX1EitPfGt967D5Yk2YfW6mEpKtOOC+iGKq2F1lDmNIwCgYIKoZIzj0EAwID\nRwAwRAIgYaEKPnG9fsLHZj8+vKyHzQZH5tHgyTV2DnIwkC1ZI3kCICU5Xt+OZIKx\nnuuWNoymboSHQvl2gZri06hLuWs6o6Ui\n-----END CERTIFICATE-----\n',
-        privateKey: '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgwJbDMaWvCM78o9ZF\nyWXs2/yLx3s6paHP04SpBVRIiO6hRANCAARHL8Eh3D+9zwFlnp1Sh3dBGEm6iJHb\nWWeluXnxtSW6rOv35M+JIgbiE+OhdEHry1lE1vnD36KyaYdZD2hm7AJP\n-----END PRIVATE KEY-----\n',
+        certificate: '-----BEGIN CERTIFICATE-----\nMIICIzCCAcqgAwIBAgIRAPWLKEP8RZAAwBMkuWG3VlQwCgYIKoZIzj0EAwIwbzEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xFzAVBgNVBAoTDm9yZzEub2RpbnMuY29tMRowGAYDVQQDExFjYS5v\ncmcxLm9kaW5zLmNvbTAeFw0yMTA5MDYxMDIzMDBaFw0zMTA5MDQxMDIzMDBaMGkx\nCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4g\nRnJhbmNpc2NvMQ4wDAYDVQQLEwVhZG1pbjEdMBsGA1UEAwwUQWRtaW5Ab3JnMS5v\nZGlucy5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASTbkqtEAYg9u5nXt/N\naiS49gRFfEHIdCwhYqx+z68WnmzzVI32UYt5fNnJQsz0G+yI9HsUSCLk7v9Hld0F\nUHuJo00wSzAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0TAQH/BAIwADArBgNVHSMEJDAi\ngCB9fUSK098a33rsPliTZh9bqYSkq044L6IYqrYXWUOY0jAKBggqhkjOPQQDAgNH\nADBEAiAD0XvQy762+JbgsJntMzdjDYwShJI9WSGfljrwW6PkRgIgd9eoZZYHKlV7\n0jJBfGKAPVVn/oIhdSh827FL1Tm7Kg4=\n-----END CERTIFICATE-----',
+        privateKey: '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVJkebrVEcMOLTrQp\nB0bP0Zs/PQAYEOXF+6u0UVu/WPmhRANCAASTbkqtEAYg9u5nXt/NaiS49gRFfEHI\ndCwhYqx+z68WnmzzVI32UYt5fNnJQsz0G+yI9HsUSCLk7v9Hld0FUHuJ\n-----END PRIVATE KEY-----\n',
     },
     settings: {
         enableDiscovery: true,

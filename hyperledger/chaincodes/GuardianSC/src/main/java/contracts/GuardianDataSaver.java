@@ -98,8 +98,7 @@ public final class GuardianDataSaver implements ContractInterface {
     public String getHistoricos(final Context ctx, final String entityID, final String attrID, final String fromDate, final String toDate) {
         ChaincodeStub stub = ctx.getStub();
 
-        JSONObject selectorJSON = new JSONObject().put("selector",
-                new JSONObject());
+        JSONObject selectorJSON = new JSONObject();
         if (!entityID.equals("*")){
             selectorJSON.put("entityid", entityID);
         }
@@ -114,7 +113,8 @@ public final class GuardianDataSaver implements ContractInterface {
             if (!toDate.isEmpty())
                 selectorJSON.getJSONObject("recvTime")
                        .put("$lte", toDate);
-
+        selectorJSON = new JSONObject().put("selector",
+                selectorJSON);
         }
         String s = selectorJSON.toString();
         HashMap<String, String> results = new HashMap<>();

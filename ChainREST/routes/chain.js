@@ -9,6 +9,16 @@ var conf = fabricNetworkSimple.config = {
   connectionProfile: {
     name: "umu.fabric",
     version: "1.0.0",
+    client: {
+      organization: "Org1",
+      connection: {
+        timeout: {
+          peer: {
+            endorser: 3000
+          }
+        }
+      }
+    },
     channels : {
       mychannel : {
         orderers : [ "orderer.odins.com" ],
@@ -129,8 +139,8 @@ router.get('/gethistoricos', function(req, res, next) {
     to = req.query.to;
   }
 
-  fabconnection.invokeChaincode("getHistoricos", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
-    res.status(200).send(queryChaincodeResponse);
+  fabconnection.queryChaincode("getHistoricos", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
+    res.status(200).send(queryChaincodeResponse.queryResult);
   }).catch ( error => {
     console.log(error);
     res.status(404).send(error);
