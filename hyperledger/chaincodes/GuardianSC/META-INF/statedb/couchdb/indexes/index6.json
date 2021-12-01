@@ -1,0 +1,8 @@
+{
+  "index":{
+      "fields":["attrName","recvTime"] 
+  },
+  "ddoc":"index6Doc",
+  "name":"index6",
+  "type":"json"
+}
