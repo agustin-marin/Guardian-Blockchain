@@ -1,0 +1,23 @@
+PeerOrgs:
+  - Name: Org1
+    Domain: org1.example.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: peer0
+        CommonName: peer0.org1.example.com # overrides Hostname-based FQDN set above
+        SANS:
+          - "peer0.org1.example.com"
+          - "peer0"
+          - "10.9.25.11"
+          - "10.208.211.30"
+      - Hostname: peer1
+        CommonName: peer1.org1.example.com # overrides Hostname-based FQDN set above
+        SANS:
+          - "peer1.org1.example.com"
+          - "peer1"
+          - "10.9.25.30"
+          - "10.208.211.4"
+    Template:
+      Count: 1
+    Users:
+      Count: 1

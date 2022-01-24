@@ -224,15 +224,23 @@ async function bucleHastaHoy(attribute, entityid, today, lastts) {
             console.error(err);
         }
             let i = 0
-            do {
-                let arraytosend = [];
-                for (let j = i*70; (j < arraywithvaluesclean.length) && (j<((i+1)*70)); j++) {
-                    arraytosend[j-i*70] = arraywithvaluesclean[j];
-                }
-                // enviar al blockchain // publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
-                await publicarHistoricos(JSON.stringify(arraytosend), entityid, attribute.id, today.toISOString());
-                i++;
-            } while (i*70 < arraywithvaluesclean.length)
+    let timest;
+    do {
+        let arraytosend = [];
+        for (let j = i * 70; (j < arraywithvaluesclean.length) && (j < ((i + 1) * 70)); j++) {
+            arraytosend[j - i * 70] = arraywithvaluesclean[j];
+        }
+        // enviar al blockchain // publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID, final String attributeName, final String lasttimestamp){
+        let j = i + 1;
+        j = j * 70;
+        if (j > arraywithvaluesclean.length) { // ultima iteracion
+            timest = today;
+        } else {
+            timest = lastts;
+        }
+        await publicarHistoricos(JSON.stringify(arraytosend), entityid, attribute.id, timest.toISOString());
+        i++;
+    } while (i * 70 < arraywithvaluesclean.length)
 
 
 }
