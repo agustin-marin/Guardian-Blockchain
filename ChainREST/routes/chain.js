@@ -126,6 +126,7 @@ router.post('/pulldata/', function(req, res, next) {
 });
 
 router.get('/gethistoricos', function(req, res, next) {
+  // TODO Antes de nada comprobar que no se supera el tiempo y responder con un error/warning en ese caso.
   let entity = req.query.entity;
   let attribute = req.query.attribute;
   let from= "";
@@ -142,6 +143,12 @@ router.get('/gethistoricos', function(req, res, next) {
   fabconnection.queryChaincode("getHistoricos", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
     res.status(200).send(queryChaincodeResponse.queryResult);
   }).catch ( error => {
+    // TODO: No hacer console.log y ya esta, capturar el TIMEOUT si lo hubiera, y en ese caso, opciones:
+        // - 1: reintentar con un nuevo fabconnection? dudo que funcione ya lo probé?
+        // - 2: comunicar el timeout al usuario y generar un fichero log para un proceso en segundo plano de reinicio del peer
+        //   + 2.1: comprobar primero si funciona el nuevo valor de variable de entorno de 29 segundos y
+                //   se cierra la conexion correctamente y no es necesario reiniciar el peer
+    // TODO: dejar solo el index de todos los atributos en el smartcontract para ver si mejoran los tiempos.
     console.log(error);
     res.status(404).send(error);
   });
