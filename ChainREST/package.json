@@ -10,7 +10,7 @@
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
-    "fabric-network-simple": "^1.1.0",
+    "fabric-network-simple": "https://github.com/agustin-marin/fabric-netowrk-simple.git",
     "http-errors": "~1.6.3",
     "lodash": "4.3.0",
     "morgan": "~1.9.1",
