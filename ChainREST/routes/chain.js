@@ -180,16 +180,14 @@ router.get('/gethistoricosTEST', function(req, res, next) {
     // TODO: dejar solo el index de todos los atributos en el smartcontract para ver si mejoran los tiempos.
     console.log(error);
     if (error.includes('TIMEOUT')) { // Se ha producido un error de timeout
+      res.status(404).send("ERROR de TIMEOUT, reiniciando conexion");
       // RECREAR LA CONEXION?
-      let gateway = fabconnection.getGateway();
-      let contract = fabconnection.getContract();
-      contract.close()
-      gateway.close()
-
-
-
+      fabconnection.updateGateway();
     }
-    res.status(404).send(error);
+    else {
+      res.status(500).send("ERROR desconocido");
+    }
+
   });
 });
 
