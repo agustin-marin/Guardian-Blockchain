@@ -139,6 +139,10 @@ router.get('/gethistoricos', function(req, res, next) {
   {
     to = req.query.to;
   }
+  let today = new Date(Date.now());
+  let todaystring = today.toISOString();
+  let remoteAddress = req.socket.remoteAddress;
+  //TODO writeLOG(todaystring, remoteAddress, entity, attribute, from, to);
 
   fabconnection.queryChaincode("getHistoricos", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
     res.status(200).send(queryChaincodeResponse.queryResult);
@@ -154,8 +158,16 @@ router.get('/gethistoricos', function(req, res, next) {
   });
 });
 
+function writeLOG(todaystring, remoteAddress, entity, attribute, from, to) {
+  fs.appendFile('/tmp/' + todaystring + '.LOG', remoteAddress + ': 155.54.95.196:3000/gethistoricosTEST?entity=' + entity + '&attribute=' + attribute + 'from=' + from + 'to=' + to, function (err) {
+    if (err) throw err;
+    console.log('Saved!');
+  });
+}
+
 router.get('/gethistoricosTEST', function(req, res, next) {
   // TODO Antes de nada comprobar que no se supera el tiempo y responder con un error/warning en ese caso.
+
   let entity = req.query.entity;
   let attribute = req.query.attribute;
   let from= "";
@@ -168,9 +180,18 @@ router.get('/gethistoricosTEST', function(req, res, next) {
   {
     to = req.query.to;
   }
-
+  let today = new Date(Date.now());
+  let todaystring = today.toISOString();
+  let remoteAddress = req.socket.remoteAddress;
+  writeLOG(todaystring, remoteAddress, entity, attribute, from, to);
   fabconnection.queryChaincode("getHistoricos", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
-    res.status(200).send(queryChaincodeResponse.queryResult);
+
+    if (typeof queryChaincodeResponse !== 'undefined')
+      res.status(200).send(queryChaincodeResponse.queryResult);
+    else {
+      res.status(404).send("ERROR de TIMEOUT, reiniciando conexion");
+      fabconnection.updateGateway();
+    }
   }).catch ( error => {
     // TODO: No hacer console.log y ya esta, capturar el TIMEOUT si lo hubiera, y en ese caso, opciones:
     // - 1: reintentar con un nuevo fabconnection? dudo que funcione ya lo probé?
@@ -178,11 +199,11 @@ router.get('/gethistoricosTEST', function(req, res, next) {
     //   + 2.1: comprobar primero si funciona el nuevo valor de variable de entorno de 29 segundos y
     //   se cierra la conexion correctamente y no es necesario reiniciar el peer
     // TODO: dejar solo el index de todos los atributos en el smartcontract para ver si mejoran los tiempos.
-    console.log(error);
+    console.log('FABRIC TEST ERROR:-'+error);
     if (error.includes('TIMEOUT')) { // Se ha producido un error de timeout
-      res.status(404).send("ERROR de TIMEOUT, reiniciando conexion");
       // RECREAR LA CONEXION?
       fabconnection.updateGateway();
+      res.status(404).send("ERROR de TIMEOUT, reiniciando conexion");
     }
     else {
       res.status(500).send("ERROR desconocido");
