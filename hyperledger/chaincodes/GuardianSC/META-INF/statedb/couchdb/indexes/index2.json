@@ -1,8 +1,0 @@
-{
-  "index":{
-      "fields":["attrName"] 
-  },
-  "ddoc":"index2Doc",
-  "name":"index2",
-  "type":"json"
-}

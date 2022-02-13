@@ -8,9 +8,11 @@ import org.hyperledger.fabric.contract.annotation.Contract;
 import org.hyperledger.fabric.contract.annotation.Default;
 import org.hyperledger.fabric.contract.annotation.Info;
 import org.hyperledger.fabric.contract.annotation.Transaction;
+import org.hyperledger.fabric.protos.peer.ChaincodeShim;
 import org.hyperledger.fabric.shim.ChaincodeStub;
 import org.hyperledger.fabric.shim.ledger.KeyValue;
 import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
+import org.hyperledger.fabric.shim.ledger.QueryResultsIteratorWithMetadata;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -94,37 +96,54 @@ public final class GuardianDataSaver implements ContractInterface {
         }
         stub.putStringState(CONFIG_NAME, jsonObject.toString());
     }
+
     @Transaction()
     public String getHistoricos(final Context ctx, final String entityID, final String attrID, final String fromDate, final String toDate) {
         ChaincodeStub stub = ctx.getStub();
 
         JSONObject selectorJSON = new JSONObject();
-        if (!entityID.equals("*")){
+        if (!entityID.equals("*")) {
             selectorJSON.put("entityid", entityID);
         }
-        if (!attrID.equals("*")){
+        if (!attrID.equals("*")) {
             selectorJSON.put("attrName", attrID);
         }
-        if (!fromDate.isEmpty() || !toDate.isEmpty()){
-            selectorJSON.put("recvTime",new JSONObject());
+        if (!fromDate.isEmpty() || !toDate.isEmpty()) {
+            selectorJSON.put("recvTime", new JSONObject());
             if (!fromDate.isEmpty())
                 selectorJSON.getJSONObject("recvTime")
-                    .put("$gte", fromDate);
+                        .put("$gte", fromDate);
             if (!toDate.isEmpty())
                 selectorJSON.getJSONObject("recvTime")
-                       .put("$lte", toDate);
-        selectorJSON = new JSONObject().put("selector",
-                selectorJSON);
+                        .put("$lte", toDate);
+            selectorJSON = new JSONObject().put("selector",
+                    selectorJSON);
         }
         String s = selectorJSON.toString();
         HashMap<String, String> results = new HashMap<>();
-        QueryResultsIterator<KeyValue> result = stub.getQueryResult(s);
-        for (KeyValue keyValue : result) {
+        HashMap<String, String> resultsTEST = new HashMap<>();
+        //QueryResultsIterator<KeyValue> result = stub.getQueryResult(s);
+        String bookmark = "";
+        int fetchedRecordsCount;
+        int i = 0;
+        do {
+            i++;
+            QueryResultsIteratorWithMetadata<KeyValue> queryResultWithPagination = stub.getQueryResultWithPagination(s, 50, bookmark);
+            ChaincodeShim.QueryResponseMetadata metadata = queryResultWithPagination.getMetadata();
+            bookmark = metadata.getBookmark();
+            fetchedRecordsCount = metadata.getFetchedRecordsCount();
+            for (KeyValue keyValue : queryResultWithPagination) {
+                resultsTEST.put(keyValue.getKey(), new String(keyValue.getValue()));
+            }
+        } while ((fetchedRecordsCount > 0));
+
+        /*for (KeyValue keyValue : result) {
             results.put(keyValue.getKey(), new String(keyValue.getValue()));
-        }
-        return genson.serialize(results);
+        }*/
+        return genson.serialize(resultsTEST);
 
     }
+
     @Transaction
     public String getconfig(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
@@ -144,25 +163,71 @@ public final class GuardianDataSaver implements ContractInterface {
         }
         return configJSON.toString();
     }
-            /**
-             * @param arrayString   an array containing the string with json of historical values.
-             * @param entityID      the entityid that owns the attribute
-             * @param attributeName the attribute id/name
-             * @return bool if ok or not
-             */
-            @Transaction()
-            public boolean publicarArrayDeHistoricos (Context ctx,final String arrayString, final String entityID,
-            final String attributeName, final String lasttimestamp){
-                ChaincodeStub stub = ctx.getStub();
-                JSONArray jsonArray = new JSONArray(arrayString);
-                List<Object> objects = jsonArray.toList();
-                for (int i = 0; i < objects.size(); i++) {
-                    JSONObject historicoJSON = jsonArray.getJSONObject(i);
-                    String historico = historicoJSON.toString(); // {"entityid":"IoTConnector:00027","attrName":"analogInput_614cc3b98562c0e679f16c9d","attrvalue":"-200","recvTime":"2021-09-24T08:14:00.000Z"}
-                    stub.putStringState(entityID + attributeName + historicoJSON.getString("recvTime"), historico);
-                }
-                // update lasttimestamp
-                stub.putStringState(entityID+attributeName+"lasttimestamp", lasttimestamp);
-                return false;
-            }
+
+    /**
+     * @param arrayString   an array containing the string with json of historical values.
+     * @param entityID      the entityid that owns the attribute
+     * @param attributeName the attribute id/name
+     * @return bool if ok or not
+     */
+    @Transaction()
+    public boolean publicarArrayDeHistoricos(Context ctx, final String arrayString, final String entityID,
+                                             final String attributeName, final String lasttimestamp) {
+        ChaincodeStub stub = ctx.getStub();
+        JSONArray jsonArray = new JSONArray(arrayString);
+        List<Object> objects = jsonArray.toList();
+        for (int i = 0; i < objects.size(); i++) {
+            JSONObject historicoJSON = jsonArray.getJSONObject(i);
+            String historico = historicoJSON.toString(); // {"entityid":"IoTConnector:00027","attrName":"analogInput_614cc3b98562c0e679f16c9d","attrvalue":"-200","recvTime":"2021-09-24T08:14:00.000Z"}
+            stub.putStringState(entityID + attributeName + historicoJSON.getString("recvTime"), historico);
         }
+        // update lasttimestamp
+        stub.putStringState(entityID + attributeName + "lasttimestamp", lasttimestamp);
+        return false;
+    }
+
+    @Transaction()
+    public String getHistoricosTEST(final Context ctx, final String entityID, final String attrID, final String fromDate, final String toDate) {
+        ChaincodeStub stub = ctx.getStub();
+
+        JSONObject selectorJSON = new JSONObject();
+        if (!entityID.equals("*")) {
+            selectorJSON.put("entityid", entityID);
+        }
+        if (!attrID.equals("*")) {
+            selectorJSON.put("attrName", attrID);
+        }
+        if (!fromDate.isEmpty() || !toDate.isEmpty()) {
+            selectorJSON.put("recvTime", new JSONObject());
+            if (!fromDate.isEmpty())
+                selectorJSON.getJSONObject("recvTime")
+                        .put("$gte", fromDate);
+            if (!toDate.isEmpty())
+                selectorJSON.getJSONObject("recvTime")
+                        .put("$lte", toDate);
+            selectorJSON = new JSONObject().put("selector",
+                            selectorJSON)
+                    /*.put("sort",
+                            new JSONArray().put(new JSONObject().put("recvTime", "asc")))*/;
+        }
+        String s = selectorJSON.toString();
+        //HashMap<String, String> results = new HashMap<>();
+        JSONArray resultsTEST = new JSONArray();
+        //QueryResultsIterator<KeyValue> result = stub.getQueryResult(s);
+        String bookmark = "";
+        int fetchedRecordsCount;
+        long before;
+        before = System.nanoTime();
+        System.out.println("SELECTOR: "+s);
+        QueryResultsIteratorWithMetadata<KeyValue> queryResultWithPagination = stub.getQueryResultWithPagination(s, 70, bookmark);
+        System.out.println("TIME TO query with pagination: " + (System.nanoTime() - before) / 1_000_000_000);
+        ChaincodeShim.QueryResponseMetadata metadata = queryResultWithPagination.getMetadata();
+        fetchedRecordsCount = metadata.getFetchedRecordsCount();
+        before = System.nanoTime();
+        for (KeyValue keyValue : queryResultWithPagination) {
+            resultsTEST.put(new JSONObject().put(keyValue.getKey(), new String(keyValue.getValue())));
+        }
+        System.out.println("TIME TO for each: " + (System.nanoTime() - before) / 1_000_000_000);
+        return new JSONObject().put("queryResult", resultsTEST).put("count", fetchedRecordsCount).toString();
+    }
+}

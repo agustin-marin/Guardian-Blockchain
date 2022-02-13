@@ -184,11 +184,25 @@ router.get('/gethistoricosTEST', function(req, res, next) {
   let todaystring = today.toISOString();
   let remoteAddress = req.socket.remoteAddress;
   writeLOG(todaystring, remoteAddress, entity, attribute, from, to);
-  fabconnection.queryChaincode("getHistoricos", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
+  fabconnection.queryChaincode("getHistoricosTEST", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
 
-    if (typeof queryChaincodeResponse !== 'undefined')
-      res.status(200).send(queryChaincodeResponse.queryResult);
-    else {
+    let ordered1;
+    if (typeof queryChaincodeResponse !== 'undefined') {
+      let parse = JSON.parse(queryChaincodeResponse.queryResult);
+      console.log(parse.queryResult)
+      const ordered = Object.keys(parse.queryResult).sort().reduce(
+          (obj, key) => {
+            obj[key] = parse.queryResult[key];
+            return obj;
+          },
+          {}
+      );
+    console.log(JSON.parse(ordered[Object.keys(ordered).sort().pop()])["recvTime"])
+      parse["lastDate"] = JSON.parse(ordered[Object.keys(ordered).sort().pop()])["recvTime"];
+      parse.queryResult = ordered;
+
+      res.status(200).send(parse);
+    } else {
       res.status(404).send("ERROR de TIMEOUT, reiniciando conexion");
       fabconnection.updateGateway();
     }
