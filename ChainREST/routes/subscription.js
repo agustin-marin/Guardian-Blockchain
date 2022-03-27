@@ -108,6 +108,7 @@ function initConection() {
 
     return new Promise(resolve => {
         fabconnection = new fabricNetworkSimple(conf);
+        fabconnection.initGateway(conf)
     });
 }
 async function asyncCall2() {

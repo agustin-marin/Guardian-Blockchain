@@ -3,7 +3,7 @@ var fs = require('fs');
 var router = express.Router();
 const { default: fabricNetworkSimple } = require('fabric-network-simple');
 
-var conf = fabricNetworkSimple.config = {
+const conf = fabricNetworkSimple.config = {
   channelName: "mychannel",
   contractName: "GuardianSC",
   connectionProfile: {
@@ -19,57 +19,57 @@ var conf = fabricNetworkSimple.config = {
         }
       }
     },
-    channels : {
-      mychannel : {
-        orderers : [ "orderer.odins.com" ],
-        peers : {
-          "peer0.org1.odins.com" : {
-            endorsingPeer : true,
-            chaincodeQuery : true,
-            ledgerQuery : true,
-            eventSource : true,
-            discover : true
+    channels: {
+      mychannel: {
+        orderers: ["orderer.odins.com"],
+        peers: {
+          "peer0.org1.odins.com": {
+            endorsingPeer: true,
+            chaincodeQuery: true,
+            ledgerQuery: true,
+            eventSource: true,
+            discover: true
           }
         }
       },
     },
-    organizations : {
-      Org1 : {
-        mspid : "Org1MSP",
-        peers : [ "peer0.org1.odins.com"],
-        certificateAuthorities : [ "ca.org1.odins.com" ]
+    organizations: {
+      Org1: {
+        mspid: "Org1MSP",
+        peers: ["peer0.org1.odins.com"],
+        certificateAuthorities: ["ca.org1.odins.com"]
       }
     },
-    orderers : {
-      "orderer.odins.com" : {
-        url : "grpcs://10.9.26.101:7050",
+    orderers: {
+      "orderer.odins.com": {
+        url: "grpcs://10.9.26.101:7050",
         tlsCACerts: {
           path:
-            "/home/debian/ChainREST/test/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem",
+              "/home/debian/ChainREST/test/ordererOrganizations/odins.com/orderers/orderer.odins.com/msp/tlscacerts/tlsca.odins.com-cert.pem",
         },
       }
     },
-    peers : {
-      "peer0.org1.odins.com" : {
-        "url" : "grpcs://10.9.26.103:7051",
+    peers: {
+      "peer0.org1.odins.com": {
+        "url": "grpcs://10.9.26.103:7051",
         tlsCACerts: {
           path:
-            "/home/debian/ChainREST/test/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp/tlscacerts/tlsca.org1.odins.com-cert.pem",
+              "/home/debian/ChainREST/test/peerOrganizations/org1.odins.com/peers/peer0.org1.odins.com/msp/tlscacerts/tlsca.org1.odins.com-cert.pem",
         },
       },
     },
   },
-  certificateAuthorities : {
-      "ca.org1.odins.com" : {
-        "url" : "https://10.9.26.102:7054",
-        "httpOptions" : {
-          "verify" : false
-        },
-        "registrar" : [ {
-          "enrollId" : "admin",
-          "enrollSecret" : "adminpw"
-        } ]
-      }
+  certificateAuthorities: {
+    "ca.org1.odins.com": {
+      "url": "https://10.9.26.102:7054",
+      "httpOptions": {
+        "verify": false
+      },
+      "registrar": [{
+        "enrollId": "admin",
+        "enrollSecret": "adminpw"
+      }]
+    }
   },
   identity: {
     mspid: 'Org1MSP',
@@ -80,13 +80,14 @@ var conf = fabricNetworkSimple.config = {
     enableDiscovery: true,
     asLocalhost: false,
   }
-}
+};
 asyncCall();
 var fabconnection;
 
 function initConection() {
   return new Promise(resolve => {
     fabconnection = new fabricNetworkSimple(conf);
+    fabconnection.initGateway(conf);
   });
 }
   
@@ -165,7 +166,7 @@ function writeLOG(todaystring, remoteAddress, entity, attribute, from, to) {
   });
 }
 
-router.get('/gethistoricosTEST', function(req, res, next) {
+router.get('/gethistoricosTEST', async function(req, res, next) {
   // TODO Antes de nada comprobar que no se supera el tiempo y responder con un error/warning en ese caso.
 
   let entity = req.query.entity;
@@ -184,7 +185,9 @@ router.get('/gethistoricosTEST', function(req, res, next) {
   let todaystring = today.toISOString();
   let remoteAddress = req.socket.remoteAddress;
   writeLOG(todaystring, remoteAddress, entity, attribute, from, to);
-  fabconnection.queryChaincode("getHistoricosTEST", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
+  let conn = new fabricNetworkSimple(conf);
+  await conn.initGateway(conf);
+  conn.queryChaincode("getHistoricosTEST", [entity,attribute,from, to], {}).then(queryChaincodeResponse => {
 
     let ordered1;
     if (typeof queryChaincodeResponse !== 'undefined') {
@@ -204,7 +207,6 @@ router.get('/gethistoricosTEST', function(req, res, next) {
       res.status(200).send(parse);
     } else {
       res.status(404).send("ERROR de TIMEOUT, reiniciando conexion");
-      fabconnection.updateGateway();
     }
   }).catch ( error => {
     // TODO: No hacer console.log y ya esta, capturar el TIMEOUT si lo hubiera, y en ese caso, opciones:
@@ -216,7 +218,6 @@ router.get('/gethistoricosTEST', function(req, res, next) {
     console.log('FABRIC TEST ERROR:-'+error);
     if (error.includes('TIMEOUT')) { // Se ha producido un error de timeout
       // RECREAR LA CONEXION?
-      fabconnection.updateGateway();
       res.status(404).send("ERROR de TIMEOUT, reiniciando conexion");
     }
     else {
